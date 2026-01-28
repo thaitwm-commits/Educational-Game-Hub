@@ -1,0 +1,17 @@
+[
+  {
+    "title": "Word Catcher",
+    "description": "Catch the correct falling words before they hit the ground!",
+    "path": "games/word-catcher/index.html"
+  },
+  {
+    "title": "Spaceship",
+    "description": "Crash to the correct blackhole",
+    "path": "games/spaceship-blackhole/index.html"
+  },
+  {
+    "title": "Whack-A-Word",
+    "description": "Hit the correct mole",
+    "path": "games/Whack-A-Word/index.html"
+  }
+]

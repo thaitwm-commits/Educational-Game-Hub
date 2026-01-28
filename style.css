@@ -1,0 +1,136 @@
+:root {
+    --bg-color: #121212;       /* Deep dark background */
+    --card-bg: #1e1e1e;       /* Lighter surface for cards */
+    --primary: #bb86fc;       /* Soft purple (classic dark mode accent) */
+    --primary-dark: #9965f4;  /* Darker purple for press state */
+    --text-main: #e0e0e0;     /* Off-white for high contrast */
+    --text-muted: #b0b0b0;    /* Grey for descriptions */
+    --shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 20px;
+    color: var(--text-main);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--primary); /* Title pop */
+}
+
+/* Card Updates */
+.game-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+    border: 1px solid #333; /* Subtle border to define cards */
+    transition: transform 0.2s ease;
+}
+
+.game-card:active {
+    transform: scale(0.97);
+    background: #252525;
+}
+
+.play-btn {
+    display: block;
+    background-color: var(--primary);
+    color: #000; /* Dark text on light button for better contrast */
+    text-align: center;
+    text-decoration: none;
+    padding: 18px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.play-btn:active {
+    background-color: var(--primary-dark);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+/* Grid setup for iPad Landscape */
+#game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Individual Card */
+.game-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+}
+
+/* Tactile feedback for touch */
+.game-card:active {
+    transform: scale(0.98);
+}
+
+.game-card h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+}
+
+.game-card p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-bottom: 24px;
+    flex-grow: 1;
+}
+
+/* Big Play Button */
+.play-btn {
+    display: block;
+    background-color: var(--primary);
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    padding: 18px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1.3rem;
+    transition: background-color 0.2s;
+}
+
+.play-btn:active {
+    background-color: var(--primary-dark);
+}
+
+.loading {
+    text-align: center;
+    grid-column: 1 / -1;
+    font-size: 1.2rem;
+}
