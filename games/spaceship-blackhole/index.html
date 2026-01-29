@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spaceship Blackhole</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="ui-layer">
+        <div id="start-screen">
+            <h1>🚀 Word Matcher</h1>
+            <p>Upload a .txt file to start (max 60 pairs)</p>
+            <input type="file" id="file-input" accept=".txt">
+            <div id="error-msg"></div>
+        </div>
+
+        <div id="game-ui" class="hidden">
+            <div id="timer">Time: 00s</div>
+        </div>
+
+        <div id="end-screen" class="hidden">
+            <h1 id="end-title">Game Over</h1>
+            <button onclick="location.reload()">Restart</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    <script src="game.js"></script>
+</body>
+</html>
