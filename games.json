@@ -13,5 +13,10 @@
     "title": "Whack-A-Word",
     "description": "Hit the correct mole",
     "path": "games/Whack-A-Word/index.html"
+  },
+  {
+    "title": "Wander Worder",
+    "description": "Try to patient, drive careful",
+    "path": "games/Subway-worder/index.html"
   }
 ]
