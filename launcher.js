@@ -30,5 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(err => {
             grid.innerHTML = `<p class="loading">Error: ${err.message}</p>`;
             console.error(err);
-        });
+        })
+        
 });

@@ -134,3 +134,40 @@ header h1 {
     grid-column: 1 / -1;
     font-size: 1.2rem;
 }
+.led-banner {
+    background: #000;             /* Nền đen tuyền */
+    color: #f1c40f;              /* Chữ vàng neon (giống màu divider game) */
+    overflow: hidden;            /* Ẩn phần chữ thừa bên ngoài */
+    white-space: nowrap;         /* Không cho chữ xuống dòng */
+    padding: 12px 0;
+    border-top: 2px solid #333;
+    border-bottom: 2px solid #333;
+    font-family: 'Courier New', Courier, monospace; /* Font chữ kiểu điện tử */
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.led-text {
+    display: inline-block;
+    animation: marquee-led 15s linear infinite; /* Chạy liên tục trong 15 giây */
+}
+
+.led-icon {
+    width: 20px;
+    height: 20px;
+    margin: 0 15px;
+    vertical-align: middle;
+    filter: drop-shadow(0 0 5px #f1c40f); /* Tạo hiệu ứng phát sáng cho icon */
+}
+
+/* Hiệu ứng chạy chữ */
+@keyframes marquee-led {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); } /* Chạy hết một nửa nội dung lặp lại */
+}
+
+/* Hiệu ứng nhấp nháy nhẹ kiểu bảng điện tử (Tùy chọn) */
+.led-text span {
+    text-shadow: 0 0 8px rgba(241, 196, 15, 0.7);
+}
