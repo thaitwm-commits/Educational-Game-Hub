@@ -3,258 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jungle Runner Pro: Fixed Streak Edition</title>
+    <title>Jungle Runner</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; touch-action: none; }
-        #game-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; }
-        canvas { background: #2c3e50; }
-        #ui { position: absolute; top: 15px; left: 15px; pointer-events: none; z-index: 10; }
-        #word-prompt { 
-            position: absolute; top: 10%; width: 100%; text-align: center; 
-            font-size: 38px; font-weight: bold; color: #f1c40f; z-index: 10;
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
-        }
-        #announcement {
-            position: absolute; top: 40%; width: 100%; text-align: center;
-            font-size: 60px; color: #ff3333; font-weight: bold; display: none;
-            text-shadow: 0 0 20px rgba(255,0,0,0.7); z-index: 20;
-        }
-        #file-overlay {
-            position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.9);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
-        }
-        .stat { font-size: 20px; margin-bottom: 5px; font-weight: bold; }
-        .hidden { display: none !important; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .blinking { animation: blink 0.5s infinite; }
+        #game-wrapper { display: flex; width: 100vw; height: 100vh; background: #333; position: relative; }
+        
+        /* Vách ngăn trung tâm */
+        #divider { position: absolute; left: 50%; top: 0; width: 6px; height: 100%; background: #f1c40f; transform: translateX(-50%); z-index: 50; box-shadow: 0 0 15px #f1c40f; }
+        
+        .screen { position: relative; flex: 1; overflow: hidden; }
+        canvas { width: 100%; height: 100%; display: block; background: #1a2533; }
+        
+        #word-prompt-container { position: absolute; top: 10%; width: 100%; display: flex; justify-content: center; z-index: 100; pointer-events: none; }
+        .word-box { background: rgba(0,0,0,0.9); padding: 15px; border-radius: 12px; border: 3px solid #f1c40f; text-align: center; min-width: 150px; }
+        .prompt-img { max-height: 100px; display: block; margin: 0 auto; border-radius: 5px; }
+        .prompt-text { font-size: 28px; color: #f1c40f; font-weight: bold; margin-top: 5px; }
+        
+        #announcement { position: absolute; top: 40%; width: 100%; text-align: center; font-size: 50px; color: #ff3333; font-weight: bold; display: none; z-index: 60; text-shadow: 0 0 15px #000; }
+        .stats { position: absolute; bottom: 20px; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 8px; font-size: 13px; z-index: 20; }
+        #file-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; }
+        .blinking { animation: blink 0.4s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="file-overlay">
-        <h1>🌳 JUNGLE RUNNER PRO</h1>
-        <p>Tải file .txt để bắt đầu</p>
-        <input type="file" id="fileInput" accept=".txt">
-    </div>
+<div id="file-overlay">
+    <h2>🏎️ JUNGLE RUNNER</h2>
+    <p>Race against newest AI, who drives longest win.</p>
+    <input type="file" id="fileInput" accept=".json,.txt">
+</div>
 
-    <div id="ui" class="hidden">
-        <div class="stat">Thời gian: <span id="timer">00:00</span></div>
-        <div class="stat">Mạng: <span id="lives">❤️❤️❤️</span></div>
-        <div class="stat">Chuỗi hiện tại: <span id="streak">0</span></div>
-        <div class="stat" id="speed-tag">Tốc độ: x2.0</div>
+<div id="divider"></div>
+
+<div id="word-prompt-container">
+    <div id="word-box" class="word-box" style="display: none;">
+        <img id="prompt-image" class="prompt-img" src="">
+        <div id="prompt-text" class="prompt-text"></div>
     </div>
-    <div id="word-prompt"></div>
-    <div id="announcement" class="blinking">WATCH OUT!</div>
-    <canvas id="gameCanvas"></canvas>
+</div>
+
+<div id="announcement" class="blinking">WATCH OUT!</div>
+
+<div id="game-wrapper">
+    <div class="screen">
+        <div class="stats" style="left: 10px;">Mạng: <span id="p-lives">❤️❤️❤️</span> | Chuỗi: <span id="p-streak">0</span></div>
+        <canvas id="canvasPlayer"></canvas>
+    </div>
+    <div class="screen">
+        <div class="stats" style="right: 10px; text-align: right;">Chuỗi AI: <span id="ai-streak">0</span> | <span id="speed-tag">x2.0</span></div>
+        <canvas id="canvasAI"></canvas>
+    </div>
 </div>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const fileInput = document.getElementById('fileInput');
-const wordPrompt = document.getElementById('word-prompt');
-const announcement = document.getElementById('announcement');
-
-const playerImg = new Image(); playerImg.src = 'car1.png';
-const enemyImg = new Image(); enemyImg.src = 'car2.png';
-const bgImg = new Image(); bgImg.src = 'bg.png';
-
 const LANE_WIDTH = 130;
 const CANVAS_WIDTH = LANE_WIDTH * 3;
-const LANES = [LANE_WIDTH * 0.5, LANE_WIDTH * 1.5, LANE_WIDTH * 2.5];
+const playerImg = new Image(); playerImg.src = 'car1.png';
+const aiImg = new Image(); aiImg.src = 'car2.png';
+const bgImg = new Image(); bgImg.src = 'bg.png';
 
-let pairs = [], currentPair = null;
-let lives = 3, streak = 0, maxStreak = 0, pairsAnswered = 0, gameState = 'START';
-let baseSpeed = 6, difficultyMult = 2.0, gameSpeed = 0;
-let isSlowMo = false, isCooldown = false, isConfirming = false;
-let lastQuestionTime = 0, shakeTime = 0, cooldownEndTime = 0;
-let startTime = 0, timerInterval = null;
+let vocab = [], objects = [], speedLines = [];
+let gameState = 'START', isSlowMo = false, isNitro = false, isCooldown = false;
+let bgY = 0, difficulty = 2.0, pairsAnswered = 0, shakeIntensity = 0;
+let fileType = ''; // 'json' hoặc 'txt'
 
-let bgY = 0;
-const player = { lane: 1, x: LANES[1], y: 0, w: 60, h: 100, flickerTimer: 0 };
-let objects = [], speedLines = [];
+const player = { lane: 1, x: LANE_WIDTH * 1.5, y: 0, lives: 3, streak: 0 };
+const ai = { lane: 1, x: LANE_WIDTH * 1.5, streak: 0, targetLane: 1 };
 
-for(let i=0; i<15; i++) speedLines.push({ x: Math.random()*CANVAS_WIDTH, y: Math.random()*800, l: 30, s: 15 });
+for(let i=0; i<25; i++) speedLines.push({ x: Math.random()*CANVAS_WIDTH, y: Math.random()*800, l: Math.random()*40+20 });
 
-function isTouchingPlayer(touchX, touchY) {
-    const rect = canvas.getBoundingClientRect();
-    const x = touchX - rect.left;
-    const y = touchY - rect.top;
-    return (x > player.x - 50 && x < player.x + 50 && y > player.y - 20 && y < player.y + 120);
-}
+// --- ĐIỀU KHIỂN ---
+let touchStartX = 0;
+window.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    const rect = document.getElementById('canvasPlayer').getBoundingClientRect();
+    const x = (e.touches[0].clientX - rect.left) * (CANVAS_WIDTH / rect.width);
+    const y = (e.touches[0].clientY - rect.top) * (window.innerHeight / rect.height);
+    if (x > player.x - 50 && x < player.x + 50 && y > player.y - 20 && y < player.y + 120) isNitro = true;
+});
+
+window.addEventListener('touchend', e => {
+    isNitro = false;
+    let touchEndX = e.changedTouches[0].clientX;
+    let diff = touchEndX - touchStartX;
+    if (Math.abs(diff) > 30) { // Ngưỡng vuốt
+        if (diff > 0) player.lane = Math.min(2, player.lane + 1);
+        else player.lane = Math.max(0, player.lane - 1);
+    }
+});
 
 window.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft') player.lane = Math.max(0, player.lane - 1);
     if (e.key === 'ArrowRight') player.lane = Math.min(2, player.lane + 1);
+    if (e.key === ' ') isNitro = true;
 });
+window.addEventListener('keyup', e => { if (e.key === ' ') isNitro = false; });
 
-window.addEventListener('mousedown', e => { if (isTouchingPlayer(e.clientX, e.clientY)) isConfirming = true; });
-window.addEventListener('mouseup', () => isConfirming = false);
-window.addEventListener('contextmenu', e => e.preventDefault());
-
-let touchStartX = 0;
-window.addEventListener('touchstart', e => { 
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    if (isTouchingPlayer(touch.clientX, touch.clientY)) isConfirming = true;
-}, {passive: false});
-
-window.addEventListener('touchend', e => {
-    isConfirming = false;
-    let dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) player.lane = Math.max(0, Math.min(2, player.lane + (dx > 0 ? 1 : -1)));
-}, {passive: false});
-
-fileInput.addEventListener('change', e => {
+// --- XỬ LÝ FILE ---
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    fileType = file.name.split('.').pop().toLowerCase();
     const reader = new FileReader();
     reader.onload = (ev) => {
-        const lines = ev.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
-        for (let i = 0; i < lines.length; i += 2) if (lines[i+1]) pairs.push({ a: lines[i], b: lines[i+1] });
-        if (pairs.length > 0) startGame();
+        if (fileType === 'json') {
+            vocab = JSON.parse(ev.target.result).map(item => ({ q: item.en, url: item.url, a: item.en }));
+        } else {
+            const lines = ev.target.result.split(/\r?\n/).filter(l => l.trim());
+            for (let i = 0; i < lines.length; i += 2) vocab.push({ q: lines[i], a: lines[i+1], url: '' });
+        }
+        document.getElementById('file-overlay').style.display = 'none';
+        gameState = 'PLAYING';
+        resize();
+        requestAnimationFrame(gameLoop);
     };
-    reader.readAsText(e.target.files[0]);
+    reader.readAsText(file);
 });
 
-function startGame() {
-    document.getElementById('file-overlay').classList.add('hidden');
-    document.getElementById('ui').classList.remove('hidden');
-    gameState = 'PLAYING';
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 1000);
-    resize();
-    player.y = canvas.height - 150;
-    lastQuestionTime = Date.now();
-    requestAnimationFrame(gameLoop);
-}
+function spawn() {
+    if (isCooldown || objects.length > 0) return;
+    if (pairsAnswered > 0 && pairsAnswered % 5 === 0) { triggerWatchOut(); return; }
 
-function updateTimer() {
-    if (gameState !== 'PLAYING') return;
-    let elapsed = Math.floor((Date.now() - startTime) / 1000);
-    document.getElementById('timer').innerText = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
-}
-
-function spawnGates() {
-    currentPair = pairs[Math.floor(Math.random() * pairs.length)];
-    wordPrompt.innerText = `Tìm: ${currentPair.a}`;
     isSlowMo = true;
-    let correct = Math.floor(Math.random() * 3);
-    let distractors = pairs.filter(p => p.b !== currentPair.b).map(p => p.b);
-    for (let i = 0; i < 3; i++) {
-        objects.push({
-            type: 'GATE', lane: i, y: -400, h: 40,
-            word: (i === correct) ? currentPair.b : (distractors.splice(Math.floor(Math.random()*distractors.length), 1)[0] || "..."),
-            isCorrect: i === correct, hit: false
+    const current = vocab[Math.floor(Math.random() * vocab.length)];
+    const box = document.getElementById('word-box');
+    const pImg = document.getElementById('prompt-image');
+    const pTxt = document.getElementById('prompt-text');
+
+    if (fileType === 'json') {
+        pImg.src = current.url; pImg.style.display = 'block';
+        pTxt.innerText = ''; // Không hiện chữ khi dùng JSON
+    } else {
+        pImg.style.display = 'none';
+        pTxt.innerText = current.q;
+    }
+    box.style.display = 'block';
+
+    const correctLane = Math.floor(Math.random() * 3);
+    const distractors = vocab.filter(v => v.a !== current.a).sort(() => 0.5 - Math.random());
+    for(let i=0; i<3; i++) {
+        objects.push({ 
+            type: 'GATE', lane: i, y: -500, 
+            text: i === correctLane ? current.a : distractors[i].a, 
+            isCorrect: i === correctLane 
         });
     }
+    ai.targetLane = (Math.random() < 0.5) ? Math.floor(Math.random()*3) : correctLane;
+}
+
+function triggerWatchOut() {
+    isCooldown = true;
+    document.getElementById('announcement').style.display = 'block';
+    let spawned = 0;
+    const interval = setInterval(() => {
+        objects.push({ type: 'CAR', lane: Math.floor(Math.random()*3), y: -200 });
+        spawned++;
+        if (spawned >= 6) {
+            clearInterval(interval);
+            setTimeout(() => { isCooldown = false; pairsAnswered = 0; document.getElementById('announcement').style.display = 'none'; }, 3500);
+        }
+    }, 800);
 }
 
 function update() {
-    if (gameState !== 'PLAYING') return;
+    let speed = isNitro ? 22 : (isSlowMo ? 3.5 : 8 * (difficulty/2));
+    bgY = (bgY + speed) % window.innerHeight;
+    player.x += ((player.lane * LANE_WIDTH + LANE_WIDTH/2) - player.x) * 0.25;
+    ai.x += ((ai.targetLane * LANE_WIDTH + LANE_WIDTH/2) - ai.x) * 0.12;
 
-    let normalSpeed = baseSpeed * difficultyMult;
-    if (isSlowMo) gameSpeed = isConfirming ? normalSpeed * 3 : 2.5; 
-    else if (isCooldown) gameSpeed = normalSpeed * 0.7;
-    else gameSpeed = isConfirming ? normalSpeed * 3 : normalSpeed;
+    if (objects.length === 0 && !isCooldown) spawn();
 
-    player.x += (LANES[player.lane] - player.x) * 0.2;
-    bgY += gameSpeed;
-    if (bgY >= canvas.height) bgY = 0;
-
-    speedLines.forEach(l => {
-        l.y += gameSpeed * 1.5;
-        if (l.y > canvas.height) { l.y = -100; l.x = Math.random() * CANVAS_WIDTH; }
-    });
-
-    let now = Date.now();
-    if (!isCooldown && objects.length === 0 && now - lastQuestionTime > 6000) {
-        if (pairsAnswered > 0 && pairsAnswered % 10 === 0) {
-            isCooldown = true; pairsAnswered = 0;
-            cooldownEndTime = now + 10000;
-            announcement.style.display = 'block';
-            for(let i=0; i<6; i++) setTimeout(() => { if(isCooldown) objects.push({ type: 'CAR', lane: Math.floor(Math.random()*3), y: -150, w: 60, h: 100, hit: false }); }, i * 1400);
-        } else spawnGates();
-    }
-    if (isCooldown && now > cooldownEndTime) { isCooldown = false; announcement.style.display = 'none'; lastQuestionTime = now; }
-
-    objects.forEach((obj, i) => {
-        obj.y += gameSpeed;
-        if (obj.lane === player.lane && obj.y + (obj.h || 100) > player.y && obj.y < player.y + player.h && !obj.hit) {
+    objects.forEach((obj) => {
+        obj.y += speed;
+        if (!obj.hit && obj.y > player.y - 15 && obj.y < player.y + 70 && obj.lane === player.lane) {
             obj.hit = true;
             if (obj.type === 'GATE') {
-                if (obj.isCorrect) { 
-                    streak++; 
-                    if (streak > maxStreak) maxStreak = streak; // Cập nhật kỷ lục
-                    pairsAnswered++; 
-                    if(pairsAnswered % 10 === 0) difficultyMult += 0.3;
-                } else handleDamage();
-                isSlowMo = false; wordPrompt.innerText = "";
-                updateUI();
-            } else { handleDamage(); objects.splice(i, 1); }
+                if (obj.isCorrect) { player.streak++; pairsAnswered++; difficulty += 0.08; }
+                else { player.lives--; player.streak = 0; shakeIntensity = 25; }
+                isSlowMo = false; document.getElementById('word-box').style.display = 'none';
+            } else { player.lives--; shakeIntensity = 35; }
+            updateUI();
         }
     });
-    objects = objects.filter(o => o.y < canvas.height + 200);
-    if (player.flickerTimer > 0) player.flickerTimer -= 16;
-}
-
-function handleDamage() {
-    lives--; 
-    streak = 0; // Reset chuỗi hiện tại
-    shakeTime = 30;
-    player.flickerTimer = 2000;
-    updateUI();
-    if (lives <= 0) endGame();
+    objects = objects.filter(o => o.y < window.innerHeight + 100);
+    speedLines.forEach(l => { l.y += speed * 2.5; if (l.y > window.innerHeight) { l.y = -50; l.x = Math.random() * CANVAS_WIDTH; } });
+    if (shakeIntensity > 0) shakeIntensity *= 0.9;
 }
 
 function updateUI() {
-    document.getElementById('lives').innerText = "❤️".repeat(lives);
-    document.getElementById('streak').innerText = streak;
-    document.getElementById('speed-tag').innerText = `Tốc độ: x${difficultyMult.toFixed(1)}`;
+    document.getElementById('p-lives').innerText = "❤️".repeat(Math.max(0, player.lives));
+    document.getElementById('p-streak').innerText = player.streak;
+    document.getElementById('ai-streak').innerText = ai.streak;
+    document.getElementById('speed-tag').innerText = `x${difficulty.toFixed(1)}`;
 }
 
-function draw() {
-    let sx = (Math.random()-0.5)*shakeTime, sy = (Math.random()-0.5)*shakeTime;
-    if (shakeTime > 0) shakeTime--;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save(); ctx.translate(sx, sy);
+function draw(canvasId, carX, isAI) {
+    const c = document.getElementById(canvasId);
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.save();
+    if (!isAI && shakeIntensity > 1) ctx.translate((Math.random()-0.5)*shakeIntensity, (Math.random()-0.5)*shakeIntensity);
 
-    // Vẽ Background
-    const bgWidth = 120;
-    ctx.drawImage(bgImg, 0, bgY - canvas.height, bgWidth, canvas.height);
-    ctx.drawImage(bgImg, 0, bgY, bgWidth, canvas.height);
-    ctx.save(); ctx.translate(CANVAS_WIDTH, 0); ctx.scale(-1, 1);
-    ctx.drawImage(bgImg, 0, bgY - canvas.height, bgWidth, canvas.height);
-    ctx.drawImage(bgImg, 0, bgY, bgWidth, canvas.height);
-    ctx.restore();
+    const bgW = 120;
+    if (isAI) {
+        ctx.save(); ctx.translate(c.width, 0); ctx.scale(-1, 1);
+        ctx.drawImage(bgImg, 0, bgY, bgW, c.height); ctx.drawImage(bgImg, 0, bgY - c.height, bgW, c.height);
+        ctx.restore();
+    } else {
+        ctx.drawImage(bgImg, 0, bgY, bgW, c.height); ctx.drawImage(bgImg, 0, bgY - c.height, bgW, c.height);
+    }
 
-    // Vẽ Objects
+    // Speed Lines
+    ctx.strokeStyle = isNitro ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.15)";
+    speedLines.forEach(l => { ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, l.y + l.l); ctx.stroke(); });
+
+    // Vật thể
     objects.forEach(obj => {
         if (obj.type === 'GATE') {
-            ctx.fillStyle = "#333"; ctx.fillRect(obj.lane * LANE_WIDTH + 10, obj.y, LANE_WIDTH - 20, obj.h);
-            ctx.fillStyle = "#fff"; ctx.font = "bold 20px Arial"; ctx.textAlign = "center";
-            ctx.fillText(obj.word, obj.lane * LANE_WIDTH + LANE_WIDTH/2, obj.y + obj.h + 35);
+            ctx.fillStyle = "#34495e"; // Màu cổng trung tính (Khó đoán)
+            ctx.fillRect(obj.lane*LANE_WIDTH + 15, obj.y, LANE_WIDTH - 30, 45);
+            ctx.fillStyle = "white"; ctx.font = "bold 18px Arial"; ctx.textAlign = "center";
+            ctx.fillText(obj.text, obj.lane*LANE_WIDTH + LANE_WIDTH/2, obj.y + 28);
         } else {
-            ctx.save(); ctx.translate(obj.lane * LANE_WIDTH + LANE_WIDTH/2, obj.y + obj.h/2);
-            ctx.rotate(Math.PI); ctx.drawImage(enemyImg, -30, -50, 60, 100); ctx.restore();
+            ctx.save(); ctx.translate(obj.lane*LANE_WIDTH + LANE_WIDTH/2, obj.y + 50); ctx.rotate(Math.PI);
+            ctx.drawImage(aiImg, -35, -50, 70, 100); ctx.restore();
         }
     });
 
-    if (player.flickerTimer <= 0 || Math.floor(Date.now()/100)%2) ctx.drawImage(playerImg, player.x - 30, player.y, 60, 100);
+    ctx.drawImage(isAI ? aiImg : playerImg, carX - 35, player.y, 70, 100);
     ctx.restore();
 }
 
-function resize() { canvas.height = window.innerHeight; canvas.width = CANVAS_WIDTH; }
-
-function endGame() {
-    clearInterval(timerInterval);
-    gameState = 'END';
-    const finalTime = document.getElementById('timer').innerText;
-    // Hiển thị maxStreak thay vì streak (vì streak lúc này đã bị reset về 0)
-    alert(`TRÒ CHƠI KẾT THÚC!\nThời gian sống sót: ${finalTime}\nChuỗi kỷ lục: ${maxStreak}`);
-    location.reload();
+function gameLoop() {
+    update();
+    draw('canvasPlayer', player.x, false);
+    draw('canvasAI', ai.x, true);
+    if (player.lives > 0) requestAnimationFrame(gameLoop);
+    else { alert("GAME OVER!"); location.reload(); }
 }
 
-function gameLoop() { update(); draw(); if (gameState === 'PLAYING') requestAnimationFrame(gameLoop); }
+function resize() {
+    const ch = window.innerHeight;
+    [document.getElementById('canvasPlayer'), document.getElementById('canvasAI')].forEach(c => { c.width = CANVAS_WIDTH; c.height = ch; });
+    player.y = ch - 180;
+}
+
 window.addEventListener('resize', resize);
 resize();
 </script>
