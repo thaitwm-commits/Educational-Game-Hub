@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Frogger Pro: Safe Zone Learning</title>
+    <style>
+        :root { --gold: #f1c40f; --ui-dark: #1a1a1a; }
+        body { margin: 0; background: #000; color: #fff; font-family: -apple-system, system-ui, sans-serif; overflow: hidden; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; }
+        #game-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+
+        /* --- UI HEADER (ZOOM SÂU) --- */
+        #top-header {
+            height: 180px; background: var(--ui-dark); border-bottom: 5px solid var(--gold);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; z-index: 10; flex-shrink: 0;
+        }
+        .stats-bar { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 16px; font-weight: bold; }
+        
+        #mission-box { display: flex; flex-direction: column; align-items: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: scale(1.4); }
+        #mission-img { height: 100px; width: auto; border-radius: 12px; border: 4px solid #fff; background: #fff; display: none; object-fit: contain; }
+        #mission-text { font-size: 42px; font-weight: 900; color: var(--gold); margin: 0; text-shadow: 3px 3px 0 #000; letter-spacing: -1px; }
+
+        #viewport { flex: 1; position: relative; overflow: hidden; background: #222; }
+        canvas { display: block; margin: 0 auto; background: #000; }
+
+        /* --- CONTROLS --- */
+        #controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; pointer-events: none; }
+        .d-pad { display: grid; grid-template-columns: repeat(3, 65px); gap: 10px; pointer-events: auto; }
+        .btn-ui { width: 65px; height: 65px; background: rgba(255,255,255,0.25); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; -webkit-backdrop-filter: blur(8px); }
+        #jump-btn { width: 110px; height: 110px; background: var(--gold); border-radius: 50%; color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 22px; pointer-events: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
+        .mode-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        button { border: none; padding: 18px 50px; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; width: 280px; }
+        .btn-baby { background: #2ecc71; color: white; }
+        .btn-hard { background: #e74c3c; color: white; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <header id="top-header">
+        <div class="stats-bar">
+            <span>SCORE: <b id="score">0</b></span>
+            <span>LIVES: <b id="lives">3</b></span>
+        </div>
+        <div id="mission-box">
+            <img id="mission-img" src="">
+            <p id="mission-text">NẠP FILE...</p>
+        </div>
+    </header>
+
+    <main id="viewport">
+        <canvas id="gameCanvas"></canvas>
+        <div id="controls" class="hidden">
+            <div class="d-pad">
+                <div></div><div class="btn-ui" onpointerdown="moveFrog(0,-1)">▲</div><div></div>
+                <div class="btn-ui" onpointerdown="moveFrog(-1,0)">◀</div><div></div><div class="btn-ui" onpointerdown="moveFrog(1,0)">▶</div>
+                <div></div><div class="btn-ui" onpointerdown="moveFrog(0,1)">▼</div><div></div>
+            </div>
+            <div id="jump-btn" onpointerdown="moveFrog(0,-1)">JUMP</div>
+        </div>
+    </main>
+
+    <div id="menu" class="overlay">
+        <h1 style="color: var(--gold); font-size: 40px; margin-bottom:10px;">🐸 FROGGER PRO</h1>
+        <input type="file" id="fileLoader" accept=".txt,.json" style="margin-bottom:30px;">
+        <div id="btn-group" class="hidden mode-buttons">
+            <button class="btn-baby" onpointerdown="bootGame('BABY')">👶 BABY (∞ Mạng)</button>
+            <button class="btn-hard" onpointerdown="bootGame('HARD')">💀 HARD (3 Mạng)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/** --- AUDIO ENGINE --- **/
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function playSound(freq, type, duration, vol=0.1) {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+
+/** --- CORE VARIABLES --- **/
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const GRID = 50, COLS = 11;
+const TYPE = { GOAL: 0, RIVER: 1, ROAD: 2, SAFE: 3 };
+
+let MAP_LAYOUT = [], vocab = [], vocabPool = [], currentQ = null;
+let gameState = 'MENU', score = 0, lives = 3, cameraY = 0, currentMode = 'HARD';
+let entities = [], lastSafeZone = -1;
+let frog = { x: 5, y: 0, tx: 5, ty: 0, blink: 0 };
+
+const IMG_FROG = new Image(); IMG_FROG.src = 'https://mir-s3-cdn-cf.behance.net/project_modules/source/951e1d154719851.634c441694db1.gif';
+const CAR_SPRITES = [
+    'https://img.itch.zone/aW1hZ2UvMjE4NDQxMi8xMzA2OTY1NS5naWY=/originalm/WfrtSc.gif',
+    'https://img.itch.zone/aW1nLzEzMDY5Njc5LmdpZg==/originalm/pmiiSR.gif'
+].map(s => { const i = new Image(); i.src = s; return i; });
+
+/** --- VOCAB LOGIC (TRÁNH LẶP) --- **/
+function getNewQuestion() {
+    if (vocabPool.length === 0) {
+        vocabPool = [...vocab].sort(() => Math.random() - 0.5);
+    }
+    let nextQ = vocabPool.pop();
+    // Chống lặp từ vừa xong nếu pool có nhiều hơn 1 từ
+    if (currentQ && nextQ.a === currentQ.a && vocab.length > 1) {
+        vocabPool.unshift(nextQ);
+        nextQ = vocabPool.pop();
+    }
+    currentQ = nextQ;
+    updateMissionUI();
+    // Sau khi đổi từ, phải cập nhật lại chữ trên các khúc gỗ
+    updateLogTexts();
+}
+
+function updateMissionUI() {
+    const mImg = document.getElementById('mission-img');
+    const mTxt = document.getElementById('mission-text');
+    if(currentQ.isImg) {
+        mImg.src = currentQ.q; mImg.style.display = 'block'; mTxt.innerText = "";
+    } else {
+        mImg.style.display = 'none'; mTxt.innerText = currentQ.q;
+    }
+}
+
+function updateLogTexts() {
+    entities.forEach(e => {
+        if (e.type === 'LOG') {
+            let isFirstInCluster = (MAP_LAYOUT[e.row+1] === TYPE.SAFE);
+            if (isFirstInCluster) {
+                // Chỉ đổi text cho khúc gỗ ở giữa để làm đáp án đúng
+                if (e.idInRow === 1) e.text = currentQ.a;
+                else {
+                    let distractors = vocab.filter(v => v.a !== currentQ.a);
+                    e.text = distractors[Math.floor(Math.random()*distractors.length)].a;
+                }
+            }
+        }
+    });
+}
+
+/** --- MAP & ENTITIES --- **/
+function generateMap() {
+    let layout = [TYPE.GOAL];
+    const patterns = [[TYPE.ROAD, TYPE.SAFE], [TYPE.RIVER, TYPE.SAFE], [TYPE.ROAD, TYPE.ROAD, TYPE.SAFE], [TYPE.RIVER, TYPE.RIVER, TYPE.SAFE]];
+    for(let i=0; i<6; i++) layout.push(...patterns[Math.floor(Math.random()*patterns.length)]);
+    layout.push(TYPE.SAFE);
+    MAP_LAYOUT = layout;
+    frog.ty = MAP_LAYOUT.length - 1; frog.tx = 5;
+    lastSafeZone = frog.ty;
+    spawnEntities();
+}
+
+function spawnEntities() {
+    entities = [];
+    MAP_LAYOUT.forEach((type, row) => {
+        let speed = (0.7 + Math.random() * 0.8) * (row % 2 === 0 ? 1 : -1);
+        if (type === TYPE.ROAD) {
+            for(let i=0; i<3; i++) entities.push({ type: 'CAR', row, x: i*300, speed, img: CAR_SPRITES[row % 2] });
+        } else if (type === TYPE.RIVER) {
+            for(let i=0; i<3; i++) {
+                entities.push({ type: 'LOG', row, x: i*250, speed, text: "", w: 130, idInRow: i });
+            }
+        }
+    });
+}
+
+function update() {
+    if (gameState !== 'PLAYING') return;
+    frog.x += (frog.tx - frog.x) * 0.25;
+    frog.y = frog.ty;
+
+    // Camera
+    let targetCamY = (frog.y * GRID) - (canvas.height / 2.5);
+    cameraY += (targetCamY - cameraY) * 0.1;
+    cameraY = Math.max(0, Math.min(cameraY, (MAP_LAYOUT.length * GRID) - canvas.height));
+
+    // Move Entities
+    entities.forEach(e => {
+        e.x += e.speed;
+        if (e.x > canvas.width + 200) e.x = -200;
+        if (e.x < -200) e.x = canvas.width + 200;
+    });
+
+    // CƠ CHẾ SAFE ZONE: Đổi từ khi bước vào vùng an toàn mới
+    if (MAP_LAYOUT[frog.ty] === TYPE.SAFE && frog.ty !== lastSafeZone) {
+        lastSafeZone = frog.ty;
+        getNewQuestion();
+        playSound(600, 'sine', 0.1, 0.05);
+    }
+
+    if (frog.blink > 0) frog.blink--; else checkColl();
+}
+
+function checkColl() {
+    const rowType = MAP_LAYOUT[frog.ty];
+    const fx = frog.x * GRID;
+    if (rowType === TYPE.ROAD) {
+        if (entities.find(e => e.type === 'CAR' && e.row === frog.ty && Math.abs(e.x - fx) < 45)) die();
+    } else if (rowType === TYPE.RIVER) {
+        let log = entities.find(e => e.type === 'LOG' && e.row === frog.ty && fx > e.x - 20 && fx < e.x + 130);
+        if (log) {
+            frog.tx += log.speed / GRID;
+            if (log.text && log.text !== currentQ.a) die();
+        } else die();
+    } else if (rowType === TYPE.GOAL) {
+        score += 50; playSound(900, 'sine', 0.3); generateMap(); getNewQuestion();
+    }
+    if (frog.x < -0.5 || frog.x > COLS-0.5) die();
+}
+
+function die() {
+    playSound(150, 'sawtooth', 0.4, 0.2);
+    if(currentMode === 'HARD') {
+        lives--; updateUI();
+        if (lives <= 0) { alert("HẾT MẠNG! ĐIỂM: " + score); location.reload(); return; }
+    }
+    frog.tx = 5; frog.ty = MAP_LAYOUT.length - 1; lastSafeZone = frog.ty;
+    frog.blink = 60;
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save(); ctx.translate(0, -cameraY);
+
+    MAP_LAYOUT.forEach((type, r) => {
+        let y = r * GRID;
+        ctx.fillStyle = type === TYPE.SAFE ? '#27ae60' : type === TYPE.ROAD ? '#333' : type === TYPE.RIVER ? '#2980b9' : '#f1c40f';
+        ctx.fillRect(0, y, canvas.width, GRID);
+        if(type === TYPE.ROAD) { // Vạch kẻ đường
+            ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.setLineDash([10, 10]);
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    });
+
+    entities.forEach(e => {
+        if(e.type === 'CAR') {
+            ctx.save();
+            if(e.speed < 0) { // Đi sang trái: Flip hình
+                ctx.translate(e.x + 80, e.row * GRID + 5);
+                ctx.scale(-1, 1);
+                ctx.drawImage(e.img, 0, 0, 80, 40);
+            } else { // Đi sang phải: Vẽ thường
+                ctx.drawImage(e.img, e.x, e.row * GRID + 5, 80, 40);
+            }
+            ctx.restore();
+        } else {
+            ctx.fillStyle = "#795548"; ctx.fillRect(e.x, e.row*GRID+5, e.w, 40);
+            if(e.text) {
+                ctx.fillStyle = "white"; ctx.font = "bold 18px Arial"; ctx.textAlign="center";
+                ctx.fillText(e.text, e.x + e.w/2, e.row*GRID + 32);
+            }
+        }
+    });
+
+    if (frog.blink % 10 < 5) ctx.drawImage(IMG_FROG, frog.x*GRID+5, frog.y*GRID+5, 40, 40);
+    ctx.restore();
+}
+
+/** --- BOOT --- **/
+document.getElementById('fileLoader').onchange = (e) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        if (e.target.files[0].name.endsWith('.json')) {
+            vocab = JSON.parse(ev.target.result).map(i => ({ q: i.url, a: i.en, isImg: true }));
+        } else {
+            const lines = ev.target.result.split('\n').filter(l => l.trim());
+            for(let i=0; i<lines.length; i+=2) vocab.push({ q: lines[i], a: lines[i+1], isImg: false });
+        }
+        document.getElementById('btn-group').classList.remove('hidden');
+    };
+    reader.readAsText(e.target.files[0]);
+};
+
+function bootGame(mode) {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    currentMode = mode;
+    lives = (mode === 'HARD') ? 3 : 999;
+    gameState = 'PLAYING';
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('controls').classList.remove('hidden');
+    canvas.width = COLS * GRID; canvas.height = document.getElementById('viewport').clientHeight;
+    generateMap(); 
+    getNewQuestion();
+    updateUI();
+    requestAnimationFrame(function tick() { update(); draw(); requestAnimationFrame(tick); });
+}
+
+function moveFrog(dx, dy) {
+    if (gameState === 'PLAYING') {
+        playSound(400, 'square', 0.1, 0.03);
+        let nx = frog.tx + dx; let ny = frog.ty + dy;
+        if(nx >= 0 && nx < COLS && ny >= 0 && ny < MAP_LAYOUT.length) {
+            frog.tx = nx; frog.ty = ny;
+        }
+    }
+}
+
+function updateUI() {
+    document.getElementById('score').innerText = score;
+    document.getElementById('lives').innerText = currentMode === 'HARD' ? lives : "∞";
+}
+
+window.onkeydown = (e) => {
+    if(e.key === 'ArrowUp') moveFrog(0,-1);
+    if(e.key === 'ArrowDown') moveFrog(0,1);
+    if(e.key === 'ArrowLeft') moveFrog(-1,0);
+    if(e.key === 'ArrowRight') moveFrog(1,0);
+};
+</script>
+</body>
+</html>
