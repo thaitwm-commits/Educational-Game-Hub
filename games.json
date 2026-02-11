@@ -23,5 +23,10 @@
     "title": "Frogger ",
     "description": "Cross the street, be careful",
     "path": "games/word-frogger/index.html"
+  },
+  {
+    "title": "Fishin ",
+    "description": "Cross the street, be careful",
+    "path": "games/fishing/index.html"
   }
 ]

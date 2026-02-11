@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Arcade Fishing - Smart Spawn</title>
+    <style>
+        :root {
+            --arcade-orange: #ff8c00;
+            --arcade-red: #d32f2f;
+            --water-top: #4fc3f7;
+            --water-deep: #01579b;
+            --screen-bg: #121212;
+            --rod-brown: #5d4037;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: #000;
+            font-family: 'Courier New', Courier, monospace;
+            touch-action: none; -webkit-user-select: none; user-select: none;
+        }
+
+        #game-container {
+            display: flex; flex-direction: column;
+            width: 100vw; height: 100vh; max-width: 500px;
+            margin: 0 auto; background: #222; position: relative;
+        }
+
+        /* 🌊 WATER SURFACE & DEPTH */
+        #water-area {
+            flex: 1; position: relative;
+            background: linear-gradient(to bottom, var(--water-top), var(--water-deep));
+            overflow: hidden;
+        }
+
+        #water-surface {
+            position: absolute; top: 0; left: 0; width: 100%; height: 15px;
+            background: rgba(255, 255, 255, 0.4); z-index: 5;
+            border-bottom: 3px solid #fff;
+            animation: waveFlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes waveFlow { from { transform: translateY(0); } to { transform: translateY(5px); } }
+
+        /* 🎣 CHARACTER & ROD */
+        #character-root {
+            position: absolute; top: 10px; left: 50%;
+            transform: translateX(-50%); z-index: 20;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        #char-head { width: 40px; height: 40px; background: #ffcc80; border-radius: 50%; border: 3px solid #000; }
+        #char-rod { width: 90px; height: 12px; background: var(--rod-brown); border: 2px solid #000; margin-top: -8px; transform: rotate(-10deg); }
+
+        /* 🧵 FISHING LINE */
+        #line-container {
+            position: absolute; top: 45px; left: 50%;
+            width: 2px; height: 0; background: #fff;
+            box-shadow: 0 0 8px #fff; z-index: 15;
+            transition: height 0.15s ease-out;
+            transform: translateX(35px); /* Matches rod tip */
+        }
+        #hook { position: absolute; bottom: 0; left: -6px; width: 12px; height: 15px; border: 2px solid #ddd; border-top: none; border-radius: 0 0 7px 7px; }
+
+        /* 🐟 FISH STYLE */
+        .fish {
+            position: absolute; display: flex; align-items: center;
+            padding: 8px 18px; background: rgba(0,0,0,0.6);
+            border-radius: 40px; color: #fff; pointer-events: none;
+            z-index: 6;
+        }
+        .fish .emoji { font-size: 55px; line-height: 1; margin-right: 12px; }
+        .fish .word { font-size: 22px; font-weight: 900; text-transform: uppercase; }
+
+        /* 💢 BITE MODE (SNAP TO CENTER + WIGGLE) */
+        .fish.biting {
+            animation: biteWiggle 0.08s infinite;
+            background: rgba(255, 255, 255, 0.4);
+            border: 4px solid #f1c40f;
+            z-index: 25;
+            box-shadow: 0 0 30px #f1c40f;
+        }
+        @keyframes biteWiggle {
+            0% { transform: translate(calc(var(--fx) - 3px), calc(var(--fy) - 2px)) scale(1.1) scaleX(var(--sx)); }
+            50% { transform: translate(calc(var(--fx) + 3px), calc(var(--fy) + 2px)) scale(1.1) scaleX(var(--sx)); }
+            100% { transform: translate(calc(var(--fx) - 3px), calc(var(--fy) + 2px)) scale(1.1) scaleX(var(--sx)); }
+        }
+
+        /* 🕹 PANEL */
+        #arcade-panel { height: 280px; background: var(--arcade-orange); border-top: 10px solid #cc7000; padding: 15px; display: flex; gap: 15px; box-sizing: border-box; }
+        #game-screen { flex: 1; background: var(--screen-bg); border: 8px solid #333; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 40px #000; overflow: hidden; }
+        #screen-img { max-width: 90%; max-height: 90%; object-fit: contain; display: none; }
+        #screen-msg { color: #0f0; font-size: 22px; text-align: center; font-weight: bold; }
+        #arcade-btn { width: 110px; height: 110px; background: var(--arcade-red); border-radius: 50%; border: none; cursor: pointer; position: relative; top: -10px; box-shadow: 0 12px 0 #8b0000, 0 15px 25px rgba(0,0,0,0.5); color: #fff; font-weight: bold; font-size: 24px; outline: none; }
+        #arcade-btn:active { top: -2px; box-shadow: 0 4px 0 #8b0000, 0 5px 15px rgba(0,0,0,0.5); }
+        #score-tag { position: absolute; top: 20px; left: 20px; color: #fff; font-size: 28px; font-weight: bold; text-shadow: 3px 3px #000; z-index: 30; }
+        #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .btn-start { padding: 20px 50px; background: var(--arcade-orange); color: #fff; border: none; border-radius: 10px; font-size: 26px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="score-tag">SCORE: 0</div>
+    <div id="water-area">
+        <div id="water-surface"></div>
+        <div id="character-root">
+            <div id="char-head"></div>
+            <div id="char-rod"></div>
+        </div>
+        <div id="line-container"><div id="hook"></div></div>
+    </div>
+
+    <div id="arcade-panel">
+        <div id="game-screen">
+            <img id="screen-img" src="" alt="">
+            <div id="screen-msg">CHƯA CÓ DỮ LIỆU</div>
+        </div>
+        <div id="button-area">
+            <button id="arcade-btn">BITE!</button>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <button class="btn-start" onclick="document.getElementById('file-input').click()">NẠP JSON & CHƠI</button>
+    </div>
+    <input type="file" id="file-input" style="display:none" accept=".json">
+</div>
+
+<script>
+    const EMOJIS = ['🐙', '🐟', '🐠', '🦈', '🐡', '🦀', '🦑', '🐬', '🐳', '🐋'];
+    const CORRECT_BIAS = 0.7; // 70% cơ hội sinh ra cá đúng
+
+    const container = document.getElementById('water-area');
+    const screenImg = document.getElementById('screen-img');
+    const screenMsg = document.getElementById('screen-msg');
+    const scoreTag = document.getElementById('score-tag');
+    const lineObj = document.getElementById('line-container');
+    const arcadeBtn = document.getElementById('arcade-btn');
+    const fileInput = document.getElementById('file-input');
+    const overlay = document.getElementById('overlay');
+
+    let vocab = [];
+    let fishes = [];
+    let currentTask = null;
+    let score = 0;
+    let isCooldown = false;
+    let bitingFish = null;
+    let gameRunning = false;
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                vocab = JSON.parse(event.target.result);
+                overlay.style.display = 'none';
+                gameRunning = true;
+                initGame();
+            } catch (err) { alert("Lỗi định dạng JSON!"); }
+        };
+        reader.readAsText(file);
+    };
+
+    function initGame() {
+        nextQuestion();
+        for (let i = 0; i < 6; i++) spawnFish();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function nextQuestion() {
+        currentTask = vocab[Math.floor(Math.random() * vocab.length)];
+        screenImg.src = currentTask.url;
+        screenImg.style.display = 'block';
+        screenMsg.style.display = 'none';
+        isCooldown = true;
+        bitingFish = null;
+        setTimeout(() => { isCooldown = false; }, 7000);
+    }
+
+    function spawnFish() {
+        const direction = Math.random() > 0.5 ? 1 : -1;
+        
+        // 🧠 CƠ CHẾ TẠO CÁ THÔNG MINH
+        let fishData;
+        if (Math.random() < CORRECT_BIAS && currentTask) {
+            fishData = currentTask; // Chọn con cá đúng
+        } else {
+            fishData = vocab[Math.floor(Math.random() * vocab.length)]; // Chọn cá ngẫu nhiên
+        }
+
+        const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+        const div = document.createElement('div');
+        div.className = 'fish';
+        div.innerHTML = `<span class="emoji">${emoji}</span><span class="word">${fishData.en}</span>`;
+        container.appendChild(div);
+
+        fishes.push({
+            el: div,
+            wordEl: div.querySelector('.word'),
+            data: fishData,
+            x: direction === 1 ? -300 : container.offsetWidth + 100,
+            y: 150 + Math.random() * (container.offsetHeight - 300),
+            speed: (1.5 + Math.random() * 2) * direction,
+            isBiting: false,
+            escaped: false
+        });
+    }
+
+    function gameLoop() {
+        if (!gameRunning) return;
+        
+        const lineX = container.offsetWidth / 2 + 35; 
+        const centerY = container.offsetHeight / 2;
+
+        fishes.forEach((f, idx) => {
+            if (f.isBiting) {
+                // Khóa vào tâm
+                f.x = lineX - 60; 
+                f.y = centerY;
+            } else {
+                f.x += f.speed;
+            }
+
+            let sx = f.speed > 0 ? -1 : 1;
+            if (f.isBiting) sx = (f.x < lineX) ? -1 : 1;
+
+            f.el.style.setProperty('--fx', f.x + 'px');
+            f.el.style.setProperty('--fy', f.y + 'px');
+            f.el.style.setProperty('--sx', sx);
+            
+            f.el.style.transform = `translate(${f.x}px, ${f.y}px) scaleX(${sx})`;
+            f.wordEl.style.transform = `scaleX(${sx})`;
+
+            // Bắt đầu cắn khi đi qua dây câu
+            if (!isCooldown && !bitingFish && !f.escaped && Math.abs(f.x - (lineX - 60)) < 15) {
+                startBite(f);
+            }
+
+            // Dọn dẹp cá bơi xa
+            if (f.x > container.offsetWidth + 500 || f.x < -500) {
+                f.el.remove();
+                fishes.splice(idx, 1);
+                spawnFish();
+            }
+        });
+        requestAnimationFrame(gameLoop);
+    }
+
+    function startBite(f) {
+        bitingFish = f;
+        f.isBiting = true;
+        f.el.classList.add('biting');
+        lineObj.style.height = (container.offsetHeight / 2 - 30) + 'px';
+        setTimeout(() => { if (bitingFish === f) resolveBite(false); }, 1000);
+    }
+
+    function resolveBite(success) {
+        if (!bitingFish) return;
+        const f = bitingFish;
+        if (success) {
+            score += 100;
+            scoreTag.innerText = `SCORE: ${score}`;
+            f.el.style.transition = "transform 0.4s ease-in, opacity 0.3s";
+            f.el.style.opacity = "0";
+            f.x = -2000;
+            nextQuestion();
+        } else {
+            f.isBiting = false;
+            f.escaped = true;
+            f.speed *= 4; // Bỏ chạy cực nhanh
+            f.el.classList.remove('biting');
+        }
+        lineObj.style.height = '0px';
+        bitingFish = null;
+        isCooldown = true;
+        setTimeout(() => { isCooldown = false; }, 2000);
+    }
+
+    function handleInput(e) {
+        if (e) e.preventDefault();
+        if (bitingFish) {
+            if (bitingFish.data.en === currentTask.en) resolveBite(true);
+            else {
+                resolveBite(false);
+                score = Math.max(0, score - 50);
+                scoreTag.innerText = `SCORE: ${score}`;
+            }
+        }
+    }
+
+    arcadeBtn.addEventListener('mousedown', handleInput);
+    arcadeBtn.addEventListener('touchstart', handleInput);
+</script>
+</body>
+</html>
