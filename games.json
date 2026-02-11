@@ -18,5 +18,10 @@
     "title": "Wander Worder",
     "description": "Try to patient, drive careful",
     "path": "games/Subway-worder/index.html"
+  },
+  {
+    "title": "Frogger ",
+    "description": "Cross the street, be careful",
+    "path": "games/word-frogger/index.html"
   }
 ]
