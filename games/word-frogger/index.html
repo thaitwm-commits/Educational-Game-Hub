@@ -2,14 +2,25 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Frogger Pro: Safe Zone Learning</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Frogger Pro: Anti-Zoom Edition</title>
     <style>
         :root { --gold: #f1c40f; --ui-dark: #1a1a1a; }
-        body { margin: 0; background: #000; color: #fff; font-family: -apple-system, system-ui, sans-serif; overflow: hidden; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; }
+        
+        /* Chặn toàn bộ hành vi kéo/zoom mặc định của trình duyệt */
+        body { 
+            margin: 0; background: #000; color: #fff; 
+            font-family: -apple-system, system-ui, sans-serif; 
+            overflow: hidden; 
+            touch-action: none; 
+            -webkit-touch-callout: none; 
+            -webkit-user-select: none; 
+            user-select: none;
+        }
+
         #game-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
-        /* --- UI HEADER (ZOOM SÂU) --- */
+        /* UI HEADER */
         #top-header {
             height: 180px; background: var(--ui-dark); border-bottom: 5px solid var(--gold);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -24,16 +35,33 @@
         #viewport { flex: 1; position: relative; overflow: hidden; background: #222; }
         canvas { display: block; margin: 0 auto; background: #000; }
 
-        /* --- CONTROLS --- */
+        /* CONTROLS - Thêm touch-action manipulation để phản hồi tức thì */
         #controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; pointer-events: none; }
         .d-pad { display: grid; grid-template-columns: repeat(3, 65px); gap: 10px; pointer-events: auto; }
-        .btn-ui { width: 65px; height: 65px; background: rgba(255,255,255,0.25); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; -webkit-backdrop-filter: blur(8px); }
-        #jump-btn { width: 110px; height: 110px; background: var(--gold); border-radius: 50%; color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 22px; pointer-events: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        
+        .btn-ui { 
+            width: 65px; height: 65px; background: rgba(255,255,255,0.25); border-radius: 18px; 
+            display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; 
+            -webkit-backdrop-filter: blur(8px);
+            touch-action: manipulation; /* Chặn double-tap zoom */
+        }
+        
+        #jump-btn { 
+            width: 110px; height: 110px; background: var(--gold); border-radius: 50%; color: #000; 
+            font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 22px; 
+            pointer-events: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            touch-action: manipulation;
+        }
 
         .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
         .mode-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-        button { border: none; padding: 18px 50px; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; width: 280px; }
+        
+        button { 
+            border: none; padding: 18px 50px; font-size: 20px; font-weight: bold; 
+            border-radius: 50px; cursor: pointer; width: 280px; 
+            touch-action: manipulation;
+        }
         .btn-baby { background: #2ecc71; color: white; }
         .btn-hard { background: #e74c3c; color: white; }
     </style>
@@ -75,6 +103,18 @@
 </div>
 
 <script>
+/** --- CHỐNG ZOOM CỨNG CHO IPAD --- **/
+document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) e.preventDefault(); // Chặn zoom 2 ngón
+}, { passive: false });
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault(); // Chặn double tap zoom
+    lastTouchEnd = now;
+}, false);
+
 /** --- AUDIO ENGINE --- **/
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
@@ -106,20 +146,18 @@ const CAR_SPRITES = [
     'https://img.itch.zone/aW1nLzEzMDY5Njc5LmdpZg==/originalm/pmiiSR.gif'
 ].map(s => { const i = new Image(); i.src = s; return i; });
 
-/** --- VOCAB LOGIC (TRÁNH LẶP) --- **/
+/** --- VOCAB LOGIC --- **/
 function getNewQuestion() {
     if (vocabPool.length === 0) {
         vocabPool = [...vocab].sort(() => Math.random() - 0.5);
     }
     let nextQ = vocabPool.pop();
-    // Chống lặp từ vừa xong nếu pool có nhiều hơn 1 từ
     if (currentQ && nextQ.a === currentQ.a && vocab.length > 1) {
         vocabPool.unshift(nextQ);
         nextQ = vocabPool.pop();
     }
     currentQ = nextQ;
     updateMissionUI();
-    // Sau khi đổi từ, phải cập nhật lại chữ trên các khúc gỗ
     updateLogTexts();
 }
 
@@ -138,7 +176,6 @@ function updateLogTexts() {
         if (e.type === 'LOG') {
             let isFirstInCluster = (MAP_LAYOUT[e.row+1] === TYPE.SAFE);
             if (isFirstInCluster) {
-                // Chỉ đổi text cho khúc gỗ ở giữa để làm đáp án đúng
                 if (e.idInRow === 1) e.text = currentQ.a;
                 else {
                     let distractors = vocab.filter(v => v.a !== currentQ.a);
@@ -149,7 +186,7 @@ function updateLogTexts() {
     });
 }
 
-/** --- MAP & ENTITIES --- **/
+/** --- MAP --- **/
 function generateMap() {
     let layout = [TYPE.GOAL];
     const patterns = [[TYPE.ROAD, TYPE.SAFE], [TYPE.RIVER, TYPE.SAFE], [TYPE.ROAD, TYPE.ROAD, TYPE.SAFE], [TYPE.RIVER, TYPE.RIVER, TYPE.SAFE]];
@@ -164,7 +201,8 @@ function generateMap() {
 function spawnEntities() {
     entities = [];
     MAP_LAYOUT.forEach((type, row) => {
-        let speed = (0.7 + Math.random() * 0.8) * (row % 2 === 0 ? 1 : -1);
+        let speedBoost = score / 500; // Cứ mỗi 500 điểm tốc độ tăng thêm 1 đơn vị
+        let speed = (1 + Math.random() * 2 + speedBoost) * (row % 2 === 0 ? 1 : -1);
         if (type === TYPE.ROAD) {
             for(let i=0; i<3; i++) entities.push({ type: 'CAR', row, x: i*300, speed, img: CAR_SPRITES[row % 2] });
         } else if (type === TYPE.RIVER) {
@@ -180,19 +218,16 @@ function update() {
     frog.x += (frog.tx - frog.x) * 0.25;
     frog.y = frog.ty;
 
-    // Camera
     let targetCamY = (frog.y * GRID) - (canvas.height / 2.5);
     cameraY += (targetCamY - cameraY) * 0.1;
     cameraY = Math.max(0, Math.min(cameraY, (MAP_LAYOUT.length * GRID) - canvas.height));
 
-    // Move Entities
     entities.forEach(e => {
         e.x += e.speed;
         if (e.x > canvas.width + 200) e.x = -200;
         if (e.x < -200) e.x = canvas.width + 200;
     });
 
-    // CƠ CHẾ SAFE ZONE: Đổi từ khi bước vào vùng an toàn mới
     if (MAP_LAYOUT[frog.ty] === TYPE.SAFE && frog.ty !== lastSafeZone) {
         lastSafeZone = frog.ty;
         getNewQuestion();
@@ -223,7 +258,7 @@ function die() {
     playSound(150, 'sawtooth', 0.4, 0.2);
     if(currentMode === 'HARD') {
         lives--; updateUI();
-        if (lives <= 0) { alert("HẾT MẠNG! ĐIỂM: " + score); location.reload(); return; }
+        if (lives <= 0) { alert("GAME OVER! SCORE: " + score); location.reload(); return; }
     }
     frog.tx = 5; frog.ty = MAP_LAYOUT.length - 1; lastSafeZone = frog.ty;
     frog.blink = 60;
@@ -237,7 +272,7 @@ function draw() {
         let y = r * GRID;
         ctx.fillStyle = type === TYPE.SAFE ? '#27ae60' : type === TYPE.ROAD ? '#333' : type === TYPE.RIVER ? '#2980b9' : '#f1c40f';
         ctx.fillRect(0, y, canvas.width, GRID);
-        if(type === TYPE.ROAD) { // Vạch kẻ đường
+        if(type === TYPE.ROAD) {
             ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.setLineDash([10, 10]);
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             ctx.setLineDash([]);
@@ -247,11 +282,11 @@ function draw() {
     entities.forEach(e => {
         if(e.type === 'CAR') {
             ctx.save();
-            if(e.speed < 0) { // Đi sang trái: Flip hình
+            if(e.speed < 0) {
                 ctx.translate(e.x + 80, e.row * GRID + 5);
                 ctx.scale(-1, 1);
                 ctx.drawImage(e.img, 0, 0, 80, 40);
-            } else { // Đi sang phải: Vẽ thường
+            } else {
                 ctx.drawImage(e.img, e.x, e.row * GRID + 5, 80, 40);
             }
             ctx.restore();
@@ -268,7 +303,6 @@ function draw() {
     ctx.restore();
 }
 
-/** --- BOOT --- **/
 document.getElementById('fileLoader').onchange = (e) => {
     const reader = new FileReader();
     reader.onload = (ev) => {
