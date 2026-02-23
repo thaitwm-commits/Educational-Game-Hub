@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Arcade Fishing - Smart Spawn</title>
+    <title>Arcade Fishing - Practice Mode</title>
     <style>
         :root {
             --arcade-orange: #ff8c00;
@@ -27,7 +27,6 @@
             margin: 0 auto; background: #222; position: relative;
         }
 
-        /* 🌊 WATER SURFACE & DEPTH */
         #water-area {
             flex: 1; position: relative;
             background: linear-gradient(to bottom, var(--water-top), var(--water-deep));
@@ -43,7 +42,6 @@
 
         @keyframes waveFlow { from { transform: translateY(0); } to { transform: translateY(5px); } }
 
-        /* 🎣 CHARACTER & ROD */
         #character-root {
             position: absolute; top: 10px; left: 50%;
             transform: translateX(-50%); z-index: 20;
@@ -53,17 +51,15 @@
         #char-head { width: 40px; height: 40px; background: #ffcc80; border-radius: 50%; border: 3px solid #000; }
         #char-rod { width: 90px; height: 12px; background: var(--rod-brown); border: 2px solid #000; margin-top: -8px; transform: rotate(-10deg); }
 
-        /* 🧵 FISHING LINE */
         #line-container {
             position: absolute; top: 45px; left: 50%;
             width: 2px; height: 0; background: #fff;
             box-shadow: 0 0 8px #fff; z-index: 15;
             transition: height 0.15s ease-out;
-            transform: translateX(35px); /* Matches rod tip */
+            transform: translateX(35px);
         }
         #hook { position: absolute; bottom: 0; left: -6px; width: 12px; height: 15px; border: 2px solid #ddd; border-top: none; border-radius: 0 0 7px 7px; }
 
-        /* 🐟 FISH STYLE */
         .fish {
             position: absolute; display: flex; align-items: center;
             padding: 8px 18px; background: rgba(0,0,0,0.6);
@@ -73,7 +69,6 @@
         .fish .emoji { font-size: 55px; line-height: 1; margin-right: 12px; }
         .fish .word { font-size: 22px; font-weight: 900; text-transform: uppercase; }
 
-        /* 💢 BITE MODE (SNAP TO CENTER + WIGGLE) */
         .fish.biting {
             animation: biteWiggle 0.08s infinite;
             background: rgba(255, 255, 255, 0.4);
@@ -87,14 +82,50 @@
             100% { transform: translate(calc(var(--fx) - 3px), calc(var(--fy) + 2px)) scale(1.1) scaleX(var(--sx)); }
         }
 
-        /* 🕹 PANEL */
-        #arcade-panel { height: 280px; background: var(--arcade-orange); border-top: 10px solid #cc7000; padding: 15px; display: flex; gap: 15px; box-sizing: border-box; }
+        #happy-flash {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 80px; z-index: 50; pointer-events: none; opacity: 0;
+        }
+        @keyframes happyAnim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+
+        #fail-overlay {
+            position: absolute; inset: 0; z-index: 60; display: none;
+            align-items: center; justify-content: center; background: rgba(0,0,0,0.4);
+        }
+        #fail-overlay img { width: 250px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        #recent-captured {
+            display: flex; gap: 8px; justify-content: center; margin-top: 15px;
+            height: 60px; overflow: hidden;
+        }
+        .recent-card {
+            background: #333; border: 1px solid #555; padding: 4px 10px;
+            border-radius: 8px; display: flex; align-items: center; gap: 5px;
+            animation: slideIn 0.3s ease-out;
+        }
+        .recent-card span { color: #fff; font-size: 14px; font-weight: bold; }
+        @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        #arcade-panel { height: 320px; background: var(--arcade-orange); border-top: 10px solid #cc7000; padding: 15px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+        .panel-top { display: flex; gap: 15px; flex: 1; }
         #game-screen { flex: 1; background: var(--screen-bg); border: 8px solid #333; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 40px #000; overflow: hidden; }
         #screen-img { max-width: 90%; max-height: 90%; object-fit: contain; display: none; }
-        #screen-msg { color: #0f0; font-size: 22px; text-align: center; font-weight: bold; }
-        #arcade-btn { width: 110px; height: 110px; background: var(--arcade-red); border-radius: 50%; border: none; cursor: pointer; position: relative; top: -10px; box-shadow: 0 12px 0 #8b0000, 0 15px 25px rgba(0,0,0,0.5); color: #fff; font-weight: bold; font-size: 24px; outline: none; }
-        #arcade-btn:active { top: -2px; box-shadow: 0 4px 0 #8b0000, 0 5px 15px rgba(0,0,0,0.5); }
-        #score-tag { position: absolute; top: 20px; left: 20px; color: #fff; font-size: 28px; font-weight: bold; text-shadow: 3px 3px #000; z-index: 30; }
+        #screen-msg { color: #0f0; font-size: 18px; text-align: center; font-weight: bold; }
+        
+        #arcade-btn { 
+            width: 110px; height: 110px; background: var(--arcade-red); border-radius: 50%; border: none; 
+            cursor: pointer; position: relative; top: -5px; box-shadow: 0 10px 0 #8b0000; 
+            color: #fff; font-weight: bold; font-size: 24px; outline: none; 
+            touch-action: manipulation;
+        }
+        #arcade-btn:active { top: 0px; box-shadow: 0 4px 0 #8b0000; }
+        #arcade-btn:disabled { filter: grayscale(1); cursor: not-allowed; }
+
         #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; }
         .btn-start { padding: 20px 50px; background: var(--arcade-orange); color: #fff; border: none; border-radius: 10px; font-size: 26px; cursor: pointer; font-weight: bold; }
     </style>
@@ -102,7 +133,6 @@
 <body>
 
 <div id="game-container">
-    <div id="score-tag">SCORE: 0</div>
     <div id="water-area">
         <div id="water-surface"></div>
         <div id="character-root">
@@ -110,56 +140,105 @@
             <div id="char-rod"></div>
         </div>
         <div id="line-container"><div id="hook"></div></div>
+        <div id="happy-flash"></div>
+        <div id="fail-overlay"><img src="https://images.squarespace-cdn.com/content/v1/56fae4be1d07c0c393d8faa5/1682513635563-2BXOHX2ZY06S8HAGB343/Lauging+Fish.png"></div>
     </div>
 
     <div id="arcade-panel">
-        <div id="game-screen">
-            <img id="screen-img" src="" alt="">
-            <div id="screen-msg">CHƯA CÓ DỮ LIỆU</div>
+        <div class="panel-top">
+            <div id="game-screen">
+                <img id="screen-img" src="" alt="">
+                <div id="screen-msg">WAITING...</div>
+            </div>
+            <div id="button-area">
+                <button id="arcade-btn">BITE!</button>
+            </div>
         </div>
-        <div id="button-area">
-            <button id="arcade-btn">BITE!</button>
-        </div>
+        <div id="recent-captured"></div>
     </div>
 
     <div id="overlay">
-        <button class="btn-start" onclick="document.getElementById('file-input').click()">NẠP JSON & CHƠI</button>
+        <button class="btn-start" onclick="document.getElementById('file-input').click()">LOAD .JSON / .TXT</button>
     </div>
-    <input type="file" id="file-input" style="display:none" accept=".json">
+    <input type="file" id="file-input" style="display:none" accept=".json,.txt">
 </div>
 
 <script>
     const EMOJIS = ['🐙', '🐟', '🐠', '🦈', '🐡', '🦀', '🦑', '🐬', '🐳', '🐋'];
-    const CORRECT_BIAS = 0.7; // 70% cơ hội sinh ra cá đúng
+    const HAPPY_EMOJIS = ['🥳', '✨', '🎉', '😄'];
+    const CORRECT_BIAS = 0.5;
 
     const container = document.getElementById('water-area');
     const screenImg = document.getElementById('screen-img');
     const screenMsg = document.getElementById('screen-msg');
-    const scoreTag = document.getElementById('score-tag');
     const lineObj = document.getElementById('line-container');
     const arcadeBtn = document.getElementById('arcade-btn');
     const fileInput = document.getElementById('file-input');
     const overlay = document.getElementById('overlay');
+    const happyFlash = document.getElementById('happy-flash');
+    const failOverlay = document.getElementById('fail-overlay');
+    const recentDiv = document.getElementById('recent-captured');
 
     let vocab = [];
     let fishes = [];
+    let recentFish = [];
     let currentTask = null;
-    let score = 0;
     let isCooldown = false;
     let bitingFish = null;
     let gameRunning = false;
+    let btnLock = false;
+
+    let audioCtx = null;
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'success') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        } else {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
 
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (event) => {
+            const content = event.target.result;
             try {
-                vocab = JSON.parse(event.target.result);
+                if (file.name.endsWith('.json')) {
+                    vocab = JSON.parse(content);
+                } else {
+                    const lines = content.split(/\r?\n/).filter(l => l.trim() !== "");
+                    if (lines.length % 2 !== 0) throw new Error("TXT Odd-Even malformed");
+                    vocab = [];
+                    for(let i=0; i<lines.length; i+=2) {
+                        vocab.push({ en: lines[i].trim(), url: lines[i+1].trim() });
+                    }
+                }
                 overlay.style.display = 'none';
                 gameRunning = true;
                 initGame();
-            } catch (err) { alert("Lỗi định dạng JSON!"); }
+            } catch (err) { alert("File error: " + err.message); }
         };
         reader.readAsText(file);
     };
@@ -182,15 +261,7 @@
 
     function spawnFish() {
         const direction = Math.random() > 0.5 ? 1 : -1;
-        
-        // 🧠 CƠ CHẾ TẠO CÁ THÔNG MINH
-        let fishData;
-        if (Math.random() < CORRECT_BIAS && currentTask) {
-            fishData = currentTask; // Chọn con cá đúng
-        } else {
-            fishData = vocab[Math.floor(Math.random() * vocab.length)]; // Chọn cá ngẫu nhiên
-        }
-
+        let fishData = (Math.random() < CORRECT_BIAS && currentTask) ? currentTask : vocab[Math.floor(Math.random() * vocab.length)];
         const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
         const div = document.createElement('div');
         div.className = 'fish';
@@ -198,96 +269,114 @@
         container.appendChild(div);
 
         fishes.push({
-            el: div,
-            wordEl: div.querySelector('.word'),
-            data: fishData,
-            x: direction === 1 ? -300 : container.offsetWidth + 100,
+            el: div, wordEl: div.querySelector('.word'), emoji: emoji,
+            data: fishData, x: direction === 1 ? -300 : container.offsetWidth + 100,
             y: 150 + Math.random() * (container.offsetHeight - 300),
-            speed: (1.5 + Math.random() * 2) * direction,
-            isBiting: false,
-            escaped: false
+            speed: (1.5 + Math.random() * 2) * direction, isBiting: false, escaped: false
         });
     }
 
     function gameLoop() {
         if (!gameRunning) return;
-        
         const lineX = container.offsetWidth / 2 + 35; 
         const centerY = container.offsetHeight / 2;
-
         fishes.forEach((f, idx) => {
-            if (f.isBiting) {
-                // Khóa vào tâm
-                f.x = lineX - 60; 
-                f.y = centerY;
-            } else {
-                f.x += f.speed;
-            }
-
+            if (f.isBiting) { f.x = lineX - 60; f.y = centerY; } else { f.x += f.speed; }
             let sx = f.speed > 0 ? -1 : 1;
             if (f.isBiting) sx = (f.x < lineX) ? -1 : 1;
-
             f.el.style.setProperty('--fx', f.x + 'px');
             f.el.style.setProperty('--fy', f.y + 'px');
             f.el.style.setProperty('--sx', sx);
-            
             f.el.style.transform = `translate(${f.x}px, ${f.y}px) scaleX(${sx})`;
             f.wordEl.style.transform = `scaleX(${sx})`;
-
-            // Bắt đầu cắn khi đi qua dây câu
-            if (!isCooldown && !bitingFish && !f.escaped && Math.abs(f.x - (lineX - 60)) < 15) {
-                startBite(f);
-            }
-
-            // Dọn dẹp cá bơi xa
+            if (!isCooldown && !bitingFish && !f.escaped && Math.abs(f.x - (lineX - 60)) < 15) startBite(f);
             if (f.x > container.offsetWidth + 500 || f.x < -500) {
-                f.el.remove();
-                fishes.splice(idx, 1);
-                spawnFish();
+                f.el.remove(); fishes.splice(idx, 1); spawnFish();
             }
         });
         requestAnimationFrame(gameLoop);
     }
 
     function startBite(f) {
-        bitingFish = f;
-        f.isBiting = true;
-        f.el.classList.add('biting');
+        bitingFish = f; f.isBiting = true; f.el.classList.add('biting');
         lineObj.style.height = (container.offsetHeight / 2 - 30) + 'px';
-        setTimeout(() => { if (bitingFish === f) resolveBite(false); }, 1000);
+        // Hết thời gian chờ cắn câu mà không bấm nút
+        setTimeout(() => { 
+            if (bitingFish === f) resolveBite(null); // Truyền null để báo hiệu "không bấm gì"
+        }, 1000);
     }
 
     function resolveBite(success) {
         if (!bitingFish) return;
         const f = bitingFish;
-        if (success) {
-            score += 100;
-            scoreTag.innerText = `SCORE: ${score}`;
+
+        if (success === true) {
+            // Trường hợp: Bấm nút và ĐÚNG
+            playSound('success');
+            showHappyFeedback();
+            updateRecent(f);
             f.el.style.transition = "transform 0.4s ease-in, opacity 0.3s";
             f.el.style.opacity = "0";
             f.x = -2000;
             nextQuestion();
-        } else {
-            f.isBiting = false;
-            f.escaped = true;
-            f.speed *= 4; // Bỏ chạy cực nhanh
+        } 
+        else if (success === false) {
+            // Trường hợp: Bấm nút và SAI (Hiện ảnh Laughing Fish)
+            playSound('fail');
+            showFailOverlay();
+            f.isBiting = false; f.escaped = true; f.speed *= 4;
+            f.el.classList.remove('biting');
+        } 
+        else {
+            // Trường hợp: success === null (Hết thời gian mà không bấm nút)
+            // Chỉ cho cá chạy mất, không hiện ảnh thua
+            f.isBiting = false; f.escaped = true; f.speed *= 4;
             f.el.classList.remove('biting');
         }
+
         lineObj.style.height = '0px';
         bitingFish = null;
         isCooldown = true;
         setTimeout(() => { isCooldown = false; }, 2000);
     }
 
+    function showHappyFeedback() {
+        happyFlash.innerText = HAPPY_EMOJIS[Math.floor(Math.random()*HAPPY_EMOJIS.length)];
+        happyFlash.style.animation = 'none';
+        void happyFlash.offsetWidth;
+        happyFlash.style.animation = 'happyAnim 0.6s forwards';
+    }
+
+    function showFailOverlay() {
+        failOverlay.style.display = 'flex';
+        failOverlay.style.opacity = '1';
+        setTimeout(() => { failOverlay.style.display = 'none'; }, 1000);
+    }
+
+    function updateRecent(f) {
+        recentFish.unshift({ emoji: f.emoji, en: f.data.en });
+        if (recentFish.length > 3) recentFish.pop();
+        recentDiv.innerHTML = recentFish.map(item => `
+            <div class="recent-card">
+                <span>${item.emoji}</span>
+                <span>${item.en}</span>
+            </div>
+        `).join('');
+    }
+
     function handleInput(e) {
         if (e) e.preventDefault();
+        if (btnLock || !gameRunning) return;
+        
+        initAudio();
+        btnLock = true;
+        arcadeBtn.disabled = true;
+        setTimeout(() => { btnLock = false; arcadeBtn.disabled = false; }, 300);
+
         if (bitingFish) {
+            // Phân định thắng/thua khi có thao tác bấm
             if (bitingFish.data.en === currentTask.en) resolveBite(true);
-            else {
-                resolveBite(false);
-                score = Math.max(0, score - 50);
-                scoreTag.innerText = `SCORE: ${score}`;
-            }
+            else resolveBite(false);
         }
     }
 
