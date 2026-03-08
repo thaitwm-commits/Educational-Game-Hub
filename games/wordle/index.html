@@ -58,7 +58,7 @@
     const BG_GIFS = [
     "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyNHA4MGptZXUzc2EyZXJkeTJxajdxeWQyd3I5NXB6aXE3N3YwOHg0aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KuFERqzDb0pxe/giphy.gif", 
     "https://i.pinimg.com/originals/ee/35/77/ee35770131dc97a83e2131676397a144.gif",
-    "https://animesher.com/orig/2/205/2057/20574/animesher.com_cafe-vaporwave-80s-2057444.gif"
+    "https://animesher.com/orig/2/205/2057/20574/animesher.com_cafe-vaporwave-80s-2057444.gif",
     "https://i.pinimg.com/originals/08/55/91/0855918ef559bc162b96419989e67642.gif"
 ];
 
@@ -96,7 +96,6 @@ function changeBackground() {
     function startGame() {
         changeBackground(); 
         target = WORDS[Math.floor(Math.random()*WORDS.length)];
-        target = WORDS[Math.floor(Math.random() * WORDS.length)];
         currentRow = 0;
         currentCol = 0;
         isGameOver = false;
@@ -271,4 +270,5 @@ function changeBackground() {
 </body>
 
 </html>
+
 
