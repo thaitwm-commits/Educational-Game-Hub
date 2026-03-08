@@ -4,47 +4,369 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Whack-A-Mole Word Match</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; overflow: hidden; background: #2e7d32; font-family: Arial, sans-serif; }
+        canvas { display: block; }
+
+        /* Lớp giao diện phía trên Canvas */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* Cho phép click xuyên qua lớp này vào hố chuột */
+        }
+
+        #menu {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            pointer-events: auto; /* Menu thì phải click được */
+            z-index: 1000;
+        }
+
+        /* Panel cài đặt */
+        #settings-panel {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: left;
+        }
+        #settings-panel input {
+            width: 70px;
+            padding: 5px;
+            border-radius: 4px;
+            border: none;
+            float: right;
+        }
+
+        /* Thông tin game khi đang chơi */
+        #game-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 500;
+        }
+
+        #overlay-msg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            z-index: 2000;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Hiệu ứng rung màn hình khi sai */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px); }
+            20% { transform: translate(-3px, 0px); }
+            40% { transform: translate(1px, -1px); }
+            60% { transform: translate(-3px, 1px); }
+            80% { transform: translate(-1px, -1px); }
+            100% { transform: translate(1px, -2px); }
+        }
+        .shake { animation: shake 0.5s infinite; }
+        
+        /* Flash màu màn hình */
+        .flash-red { background-color: rgba(255, 0, 0, 0.3); transition: 0.2s; }
+        .flash-green { background-color: rgba(0, 255, 0, 0.3); transition: 0.2s; }
+    </style>
 </head>
 <body>
-    <div id="ui-layer">
-        <div id="menu">
-            <h1>🐹 Whack-A-Mole</h1>
-            <p>Ghép cặp từ đúng để ghi điểm!</p>
-            <input type="file" id="file-input" accept=".txt,.json">
-            <div id="error-msg"></div>
+
+<div id="ui-layer">
+    <div id="menu">
+        <h1>🐹 Whack-A-Mole 🐹 </h1>
+        <p>Ghép cặp từ đúng để ghi điểm!</p>
+        
+        <div id="settings-panel">
+            <div style="margin-bottom: 10px; overflow: hidden;">
+                <label>Thời gian chơi (s): </label>
+                <input type="number" id="set-time" value="120">
+            </div>
+            <div style="overflow: hidden;">
+                <label>Phạt khi sai (s): </label>
+                <input type="number" id="set-penalty" value="10">
+            </div>
         </div>
 
-        <div id="game-info" class="hidden">
-            <div id="target-word">Tìm từ ghép với: <span>...</span></div>
-            <div id="timer">Thời gian: 00s</div>
-        </div>
-
-        <div id="overlay-msg" class="hidden"></div>
+        <input type="file" id="file-input" accept=".txt,.json">
+        <div id="error-msg" style="color: #ff5252; margin-top: 10px;"></div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
-    <script src="game.js"></script>
-    <style>
-    @keyframes shake {
-        0% { transform: translate(1px, 1px) rotate(0deg); }
-        10% { transform: translate(-1px, -2px) rotate(-1deg); }
-        20% { transform: translate(-3px, 0px) rotate(1deg); }
-        30% { transform: translate(3px, 2px) rotate(0deg); }
-        40% { transform: translate(1px, -1px) rotate(1deg); }
-        50% { transform: translate(-1px, 2px) rotate(-1deg); }
-        60% { transform: translate(-3px, 1px) rotate(0deg); }
-        70% { transform: translate(3px, 1px) rotate(-1deg); }
-        80% { transform: translate(-1px, -1px) rotate(1deg); }
-        90% { transform: translate(1px, 2px) rotate(0deg); }
-        100% { transform: translate(1px, -2px) rotate(-1deg); }
+    <div id="game-info" class="hidden">
+        <div id="timer">Thời gian: 120s</div>
+    </div>
+
+    <div id="overlay-msg" class="hidden"></div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const fileInput = document.getElementById('file-input');
+
+// --- TÀI NGUYÊN ---
+const boardImg = new Image();
+boardImg.src = 'board.png'; 
+
+// --- CẤU HÌNH ---
+let pairs = [];
+let currentPair = null;
+let timeLeft = 0;
+let gameState = 'START';
+let holes = [], moles = [];
+let nextCorrectAllowedAt = 0;
+let gameMode = 'TXT'; 
+
+let config = {
+    visibleMoles: 4,
+    popSpeed: 2000, 
+    spawnInterval: 1500,
+    pauseBetweenCorrect: 1000,
+    initialTime: 120,
+    penaltyTime: 10
+};
+
+// --- KHỞI TẠO LƯỚI ---
+function initGrid() {
+    holes = [];
+    const cols = 4, rows = 2;
+    const w = canvas.width / cols;
+    const h = (canvas.height - 120) / rows; 
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            holes.push({
+                x: c * w + w / 2,
+                y: r * h + h / 2 + 150, 
+                radius: Math.min(w, h) / 3
+            });
+        }
     }
-    .shake {
-        animation: shake 0.5s;
-        animation-iteration-count: infinite;
+}
+
+class Mole {
+    constructor(hole) {
+        this.hole = hole;
+        this.yOffset = hole.radius * 2;
+        this.status = 'DOWN';
+        this.word = "";
+        this.isCorrect = false;
+        this.timer = 0;
     }
-    /* Ẩn cái target-word cũ vì mình sẽ vẽ trực tiếp lên Canvas */
-    #target-word { display: none; }
-</style>
+    spawn(word, isCorrect) {
+        this.word = word;
+        this.isCorrect = isCorrect;
+        this.status = 'RISING';
+        this.yOffset = this.hole.radius * 2;
+        this.timer = Date.now();
+    }
+    update() {
+        const speed = 8;
+        if (this.status === 'RISING') {
+            this.yOffset -= speed;
+            if (this.yOffset <= 0) { this.yOffset = 0; this.status = 'UP'; this.timer = Date.now(); }
+        } else if (this.status === 'UP') {
+            if (Date.now() - this.timer > config.popSpeed) this.status = 'SINKING';
+        } else if (this.status === 'SINKING') {
+            this.yOffset += speed;
+            if (this.yOffset >= this.hole.radius * 2) { this.yOffset = this.hole.radius * 2; this.status = 'DOWN'; }
+        }
+    }
+    draw() {
+        if (this.status === 'DOWN') return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.hole.x, this.hole.y, this.hole.radius, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.fillStyle = "#795548";
+        ctx.beginPath();
+        ctx.arc(this.hole.x, this.hole.y + this.yOffset, this.hole.radius * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "white";
+        ctx.font = "bold 20px Arial";
+        ctx.textAlign = "center";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 3;
+        ctx.strokeText(this.word, this.hole.x, this.hole.y + this.yOffset + 10);
+        ctx.fillText(this.word, this.hole.x, this.hole.y + this.yOffset + 10);
+        ctx.restore();
+    }
+}
+
+function drawBoard() {
+    const bW = 120, bH = 120, bX = 30, bY = 30;
+    if (boardImg.complete) ctx.drawImage(boardImg, bX, bY, bW, bH);
+    if (!currentPair) return;
+    if (gameMode === 'JSON' && currentPair.imgObj) {
+        const padding = 15;
+        ctx.drawImage(currentPair.imgObj, bX + padding, bY + padding, bW - padding * 2, bH - padding * 2);
+    } else {
+        ctx.font = "bold 22px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.strokeStyle = "white"; ctx.lineWidth = 4;
+        ctx.strokeText(currentPair.wordA, bX + bW/2, bY + bH/2);
+        ctx.fillStyle = "black";
+        ctx.fillText(currentPair.wordA, bX + bW/2, bY + bH/2);
+    }
+}
+
+function startGame(data) {
+    // Lấy thông tin từ Panel
+    const setTime = document.getElementById('set-time').value;
+    const setPenalty = document.getElementById('set-penalty').value;
+    config.initialTime = parseInt(setTime) || 120;
+    config.penaltyTime = parseInt(setPenalty) || 10;
+
+    pairs = data;
+    timeLeft = config.initialTime;
+    gameState = 'PLAYING';
+    
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('game-info').classList.remove('hidden');
+    
+    initGrid();
+    moles = holes.map(h => new Mole(h));
+    nextPair();
+    requestAnimationFrame(gameLoop);
+}
+
+function nextPair() {
+    if (pairs.length === 0) return endGame("CHIẾN THẮNG!");
+    currentPair = pairs[Math.floor(Math.random() * pairs.length)];
+    nextCorrectAllowedAt = Date.now() + config.pauseBetweenCorrect;
+}
+
+function spawnLogic() {
+    const activeCount = moles.filter(m => m.status !== 'DOWN').length;
+    if (activeCount < config.visibleMoles) {
+        const availableMoles = moles.filter(m => m.status === 'DOWN');
+        if (availableMoles.length > 0) {
+            const mole = availableMoles[Math.floor(Math.random() * availableMoles.length)];
+            const hasCorrect = moles.some(m => m.status !== 'DOWN' && m.isCorrect);
+            if (!hasCorrect && Date.now() > nextCorrectAllowedAt) {
+                mole.spawn(currentPair.wordB, true);
+            } else {
+                const distractors = pairs.map(p => p.wordB).filter(w => w !== currentPair.wordB);
+                const randomWord = distractors.length > 0 ? distractors[Math.floor(Math.random() * distractors.length)] : "...";
+                mole.spawn(randomWord, false);
+            }
+        }
+    }
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    if (gameState !== 'PLAYING') return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    moles.forEach(m => {
+        if (m.status === 'RISING' || m.status === 'UP') {
+            const dist = Math.hypot(x - m.hole.x, y - (m.hole.y + m.yOffset));
+            if (dist < m.hole.radius) {
+                if (m.isCorrect) {
+                    flashScreen('flash-green'); showEmoji("❤️");
+                    pairs = pairs.filter(p => p !== currentPair);
+                    m.status = 'SINKING'; nextPair();
+                } else {
+                    flashScreen('flash-red'); showEmoji("😛");
+                    timeLeft = Math.max(0, timeLeft - config.penaltyTime); // TRỪ THỜI GIAN
+                    triggerShake();
+                }
+            }
+        }
+    });
+});
+
+function triggerShake() {
+    canvas.classList.add('shake');
+    setTimeout(() => canvas.classList.remove('shake'), 500);
+}
+
+function flashScreen(cls) {
+    document.body.classList.add(cls);
+    setTimeout(() => document.body.classList.remove(cls), 200);
+}
+
+function showEmoji(emoji) {
+    const el = document.getElementById('overlay-msg');
+    el.innerText = emoji; el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 800);
+}
+
+function gameLoop() {
+    if (gameState !== 'PLAYING') return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    timeLeft -= 1/60;
+    document.getElementById('timer').innerText = `Thời gian: ${Math.max(0, Math.ceil(timeLeft))}s`;
+    
+    if (timeLeft <= 0) return endGame("HẾT GIỜ!");
+
+    holes.forEach(h => {
+        ctx.fillStyle = "#1a5e3a"; ctx.beginPath();
+        ctx.ellipse(h.x, h.y + 5, h.radius, h.radius/3, 0, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    drawBoard();
+    spawnLogic();
+    moles.forEach(m => { m.update(); m.draw(); });
+    requestAnimationFrame(gameLoop);
+}
+
+function endGame(msg) {
+    gameState = 'END';
+    alert(msg);
+    location.reload();
+}
+
+fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const content = event.target.result;
+        const data = [];
+        if (file.name.endsWith('.json')) {
+            gameMode = 'JSON';
+            const json = JSON.parse(content);
+            json.forEach(item => {
+                const img = new Image(); img.src = item.url;
+                data.push({ wordA: item.en, wordB: item.en, imgObj: img });
+            });
+        } else {
+            gameMode = 'TXT';
+            const lines = content.split(/\r?\n/).filter(l => l.trim());
+            for (let i = 0; i < lines.length; i += 2) {
+                if(lines[i+1]) data.push({ wordA: lines[i], wordB: lines[i+1] });
+            }
+        }
+        if (data.length > 0) startGame(data);
+    };
+    reader.readAsText(file);
+});
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (gameState === 'PLAYING') initGrid();
+});
+window.dispatchEvent(new Event('resize'));
+</script>
 </body>
 </html>
