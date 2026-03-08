@@ -3,129 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Arcade Fishing - Practice Mode</title>
+    <title>Arcade Fishing - Fixed Logic</title>
     <style>
-        :root {
-            --arcade-orange: #ff8c00;
-            --arcade-red: #d32f2f;
-            --water-top: #4fc3f7;
-            --water-deep: #01579b;
-            --screen-bg: #121212;
-            --rod-brown: #5d4037;
-        }
-
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background: #000;
-            font-family: 'Courier New', Courier, monospace;
-            touch-action: none; -webkit-user-select: none; user-select: none;
-        }
-
-        #game-container {
-            display: flex; flex-direction: column;
-            width: 100vw; height: 100vh; max-width: 500px;
-            margin: 0 auto; background: #222; position: relative;
-        }
-
-        #water-area {
-            flex: 1; position: relative;
-            background: linear-gradient(to bottom, var(--water-top), var(--water-deep));
-            overflow: hidden;
-        }
-
-        #water-surface {
-            position: absolute; top: 0; left: 0; width: 100%; height: 15px;
-            background: rgba(255, 255, 255, 0.4); z-index: 5;
-            border-bottom: 3px solid #fff;
-            animation: waveFlow 2s ease-in-out infinite alternate;
-        }
-
+        /* GIỮ NGUYÊN TOÀN BỘ CSS CỦA BẠN */
+        :root { --arcade-orange: #ff8c00; --arcade-red: #d32f2f; --water-top: #4fc3f7; --water-deep: #01579b; --screen-bg: #121212; --rod-brown: #5d4037; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Courier New', Courier, monospace; touch-action: none; -webkit-user-select: none; user-select: none; }
+        #game-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; max-width: 500px; margin: 0 auto; background: #222; position: relative; }
+        #water-area { flex: 1; position: relative; background: linear-gradient(to bottom, var(--water-top), var(--water-deep)); overflow: hidden; }
+        #water-surface { position: absolute; top: 0; left: 0; width: 100%; height: 15px; background: rgba(255, 255, 255, 0.4); z-index: 5; border-bottom: 3px solid #fff; animation: waveFlow 2s ease-in-out infinite alternate; }
         @keyframes waveFlow { from { transform: translateY(0); } to { transform: translateY(5px); } }
-
-        #character-root {
-            position: absolute; top: 10px; left: 50%;
-            transform: translateX(-50%); z-index: 20;
-            display: flex; flex-direction: column; align-items: center;
-        }
-
+        #character-root { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; align-items: center; }
         #char-head { width: 40px; height: 40px; background: #ffcc80; border-radius: 50%; border: 3px solid #000; }
         #char-rod { width: 90px; height: 12px; background: var(--rod-brown); border: 2px solid #000; margin-top: -8px; transform: rotate(-10deg); }
-
-        #line-container {
-            position: absolute; top: 45px; left: 50%;
-            width: 2px; height: 0; background: #fff;
-            box-shadow: 0 0 8px #fff; z-index: 15;
-            transition: height 0.15s ease-out;
-            transform: translateX(35px);
-        }
+        #line-container { position: absolute; top: 45px; left: 50%; width: 2px; height: 0; background: #fff; box-shadow: 0 0 8px #fff; z-index: 15; transition: height 0.15s ease-out; transform: translateX(35px); }
         #hook { position: absolute; bottom: 0; left: -6px; width: 12px; height: 15px; border: 2px solid #ddd; border-top: none; border-radius: 0 0 7px 7px; }
-
-        .fish {
-            position: absolute; display: flex; align-items: center;
-            padding: 8px 18px; background: rgba(0,0,0,0.6);
-            border-radius: 40px; color: #fff; pointer-events: none;
-            z-index: 6;
-        }
+        .fish { position: absolute; display: flex; align-items: center; padding: 8px 18px; background: rgba(0,0,0,0.6); border-radius: 40px; color: #fff; pointer-events: none; z-index: 6; }
         .fish .emoji { font-size: 55px; line-height: 1; margin-right: 12px; }
         .fish .word { font-size: 22px; font-weight: 900; text-transform: uppercase; }
-
-        .fish.biting {
-            animation: biteWiggle 0.08s infinite;
-            background: rgba(255, 255, 255, 0.4);
-            border: 4px solid #f1c40f;
-            z-index: 25;
-            box-shadow: 0 0 30px #f1c40f;
-        }
+        .fish.biting { animation: biteWiggle 0.08s infinite; background: rgba(255, 255, 255, 0.4); border: 4px solid #f1c40f; z-index: 25; box-shadow: 0 0 30px #f1c40f; }
         @keyframes biteWiggle {
             0% { transform: translate(calc(var(--fx) - 3px), calc(var(--fy) - 2px)) scale(1.1) scaleX(var(--sx)); }
             50% { transform: translate(calc(var(--fx) + 3px), calc(var(--fy) + 2px)) scale(1.1) scaleX(var(--sx)); }
             100% { transform: translate(calc(var(--fx) - 3px), calc(var(--fy) + 2px)) scale(1.1) scaleX(var(--sx)); }
         }
-
-        #happy-flash {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 80px; z-index: 50; pointer-events: none; opacity: 0;
-        }
-        @keyframes happyAnim {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
-        }
-
-        #fail-overlay {
-            position: absolute; inset: 0; z-index: 60; display: none;
-            align-items: center; justify-content: center; background: rgba(0,0,0,0.4);
-        }
+        #happy-flash { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; z-index: 50; pointer-events: none; opacity: 0; }
+        @keyframes happyAnim { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
+        #fail-overlay { position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); }
         #fail-overlay img { width: 250px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
-
-        #recent-captured {
-            display: flex; gap: 8px; justify-content: center; margin-top: 15px;
-            height: 60px; overflow: hidden;
-        }
-        .recent-card {
-            background: #333; border: 1px solid #555; padding: 4px 10px;
-            border-radius: 8px; display: flex; align-items: center; gap: 5px;
-            animation: slideIn 0.3s ease-out;
-        }
+        #recent-captured { display: flex; gap: 8px; justify-content: center; margin-top: 15px; height: 60px; overflow: hidden; }
+        .recent-card { background: #333; border: 1px solid #555; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 5px; animation: slideIn 0.3s ease-out; }
         .recent-card span { color: #fff; font-size: 14px; font-weight: bold; }
         @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
         #arcade-panel { height: 320px; background: var(--arcade-orange); border-top: 10px solid #cc7000; padding: 15px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
         .panel-top { display: flex; gap: 15px; flex: 1; }
-        #game-screen { flex: 1; background: var(--screen-bg); border: 8px solid #333; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 40px #000; overflow: hidden; }
-        #screen-img { max-width: 90%; max-height: 90%; object-fit: contain; display: none; }
-        #screen-msg { color: #0f0; font-size: 18px; text-align: center; font-weight: bold; }
-        
-        #arcade-btn { 
-            width: 110px; height: 110px; background: var(--arcade-red); border-radius: 50%; border: none; 
-            cursor: pointer; position: relative; top: -5px; box-shadow: 0 10px 0 #8b0000; 
-            color: #fff; font-weight: bold; font-size: 24px; outline: none; 
-            touch-action: manipulation;
-        }
+        #game-screen { flex: 1; background: var(--screen-bg); border: 8px solid #333; border-radius: 12px; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 40px #000; overflow: hidden; padding: 5px; }
+        #screen-img { max-width: 95%; max-height: 95%; object-fit: contain; display: none; }
+        #screen-msg { color: #0f0; font-size: 24px; text-align: center; font-weight: bold; word-break: break-all; text-transform: uppercase; }
+        #arcade-btn { width: 110px; height: 110px; background: var(--arcade-red); border-radius: 50%; border: none; cursor: pointer; position: relative; top: -5px; box-shadow: 0 10px 0 #8b0000; color: #fff; font-weight: bold; font-size: 24px; outline: none; touch-action: manipulation; }
         #arcade-btn:active { top: 0px; box-shadow: 0 4px 0 #8b0000; }
         #arcade-btn:disabled { filter: grayscale(1); cursor: not-allowed; }
-
         #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; }
         .btn-start { padding: 20px 50px; background: var(--arcade-orange); color: #fff; border: none; border-radius: 10px; font-size: 26px; cursor: pointer; font-weight: bold; }
     </style>
@@ -188,36 +105,7 @@
     let gameRunning = false;
     let btnLock = false;
 
-    let audioCtx = null;
-    function initAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    function playSound(type) {
-        if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        if (type === 'success') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
-        } else {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
-        }
-    }
-
+    // --- CƠ CHẾ ĐỌC FILE THEO YÊU CẦU ---
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -226,13 +114,17 @@
             const content = event.target.result;
             try {
                 if (file.name.endsWith('.json')) {
-                    vocab = JSON.parse(content);
+                    const data = JSON.parse(content);
+                    // JSON: url = Đề, en = Đáp án (trên cá)
+                    vocab = data.map(item => ({ question: item.url, answer: item.en, type: 'json' }));
                 } else {
                     const lines = content.split(/\r?\n/).filter(l => l.trim() !== "");
-                    if (lines.length % 2 !== 0) throw new Error("TXT Odd-Even malformed");
                     vocab = [];
+                    // TXT: Dòng lẻ = Đề, Dòng chẵn = Đáp án (trên cá)
                     for(let i=0; i<lines.length; i+=2) {
-                        vocab.push({ en: lines[i].trim(), url: lines[i+1].trim() });
+                        if(lines[i+1]) {
+                            vocab.push({ question: lines[i].trim(), answer: lines[i+1].trim(), type: 'txt' });
+                        }
                     }
                 }
                 overlay.style.display = 'none';
@@ -250,29 +142,43 @@
     }
 
     function nextQuestion() {
+        if (vocab.length === 0) return;
         currentTask = vocab[Math.floor(Math.random() * vocab.length)];
-        screenImg.src = currentTask.url;
-        screenImg.style.display = 'block';
-        screenMsg.style.display = 'none';
+        
+        // Hiển thị đề lên màn hình Arcade
+        if (currentTask.type === 'json') {
+            screenImg.src = currentTask.question;
+            screenImg.style.display = 'block';
+            screenMsg.style.display = 'none';
+        } else {
+            screenMsg.innerText = currentTask.question;
+            screenMsg.style.display = 'block';
+            screenImg.style.display = 'none';
+        }
+        
         isCooldown = true;
         bitingFish = null;
-        setTimeout(() => { isCooldown = false; }, 7000);
+        setTimeout(() => { isCooldown = false; }, 1500);
     }
 
     function spawnFish() {
         const direction = Math.random() > 0.5 ? 1 : -1;
+        
+        // Chọn dữ liệu cho cá: 50% là đáp án đúng của câu hiện tại, 50% là ngẫu nhiên
         let fishData = (Math.random() < CORRECT_BIAS && currentTask) ? currentTask : vocab[Math.floor(Math.random() * vocab.length)];
+        
         const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
         const div = document.createElement('div');
         div.className = 'fish';
-        div.innerHTML = `<span class="emoji">${emoji}</span><span class="word">${fishData.en}</span>`;
+        // Hiển thị "answer" lên con cá
+        div.innerHTML = `<span class="emoji">${emoji}</span><span class="word">${fishData.answer}</span>`;
         container.appendChild(div);
 
         fishes.push({
             el: div, wordEl: div.querySelector('.word'), emoji: emoji,
             data: fishData, x: direction === 1 ? -300 : container.offsetWidth + 100,
             y: 150 + Math.random() * (container.offsetHeight - 300),
-            speed: (1.5 + Math.random() * 2) * direction, isBiting: false, escaped: false
+            speed: (1.5 + Math.random() * 2) * direction, isBiting: false, escaped: false, isCaught: false
         });
     }
 
@@ -280,16 +186,28 @@
         if (!gameRunning) return;
         const lineX = container.offsetWidth / 2 + 35; 
         const centerY = container.offsetHeight / 2;
+        
         fishes.forEach((f, idx) => {
-            if (f.isBiting) { f.x = lineX - 60; f.y = centerY; } else { f.x += f.speed; }
+            if (f.isCaught) return;
+
+            if (f.isBiting) { 
+                f.x = lineX - 60; 
+                f.y = centerY; 
+            } else { 
+                f.x += f.speed; 
+            }
+
             let sx = f.speed > 0 ? -1 : 1;
             if (f.isBiting) sx = (f.x < lineX) ? -1 : 1;
+            
             f.el.style.setProperty('--fx', f.x + 'px');
             f.el.style.setProperty('--fy', f.y + 'px');
             f.el.style.setProperty('--sx', sx);
             f.el.style.transform = `translate(${f.x}px, ${f.y}px) scaleX(${sx})`;
             f.wordEl.style.transform = `scaleX(${sx})`;
+
             if (!isCooldown && !bitingFish && !f.escaped && Math.abs(f.x - (lineX - 60)) < 15) startBite(f);
+            
             if (f.x > container.offsetWidth + 500 || f.x < -500) {
                 f.el.remove(); fishes.splice(idx, 1); spawnFish();
             }
@@ -300,36 +218,57 @@
     function startBite(f) {
         bitingFish = f; f.isBiting = true; f.el.classList.add('biting');
         lineObj.style.height = (container.offsetHeight / 2 - 30) + 'px';
-        // Hết thời gian chờ cắn câu mà không bấm nút
         setTimeout(() => { 
-            if (bitingFish === f) resolveBite(null); // Truyền null để báo hiệu "không bấm gì"
-        }, 1000);
+            if (bitingFish === f) resolveBite(null);
+        }, 1200);
     }
 
+    // --- CƠ CHẾ SO SÁNH (COMPARE) ---
     function resolveBite(success) {
         if (!bitingFish) return;
         const f = bitingFish;
 
-        if (success === true) {
-            // Trường hợp: Bấm nút và ĐÚNG
-            playSound('success');
-            showHappyFeedback();
-            updateRecent(f);
-            f.el.style.transition = "transform 0.4s ease-in, opacity 0.3s";
-            f.el.style.opacity = "0";
-            f.x = -2000;
-            nextQuestion();
-        } 
-        else if (success === false) {
-            // Trường hợp: Bấm nút và SAI (Hiện ảnh Laughing Fish)
-            playSound('fail');
-            showFailOverlay();
-            f.isBiting = false; f.escaped = true; f.speed *= 4;
-            f.el.classList.remove('biting');
-        } 
-        else {
-            // Trường hợp: success === null (Hết thời gian mà không bấm nút)
-            // Chỉ cho cá chạy mất, không hiện ảnh thua
+        // Nếu người dùng bấm nút (success không phải null)
+        if (success !== null) {
+            // SO SÁNH: Đáp án của con cá đang cắn có khớp với Đáp án của Đề bài hiện tại không
+            if (f.data.answer === currentTask.answer) {
+                // ĐÚNG
+                var audio = new (window.AudioContext || window.webkitAudioContext)();
+                var osc = audio.createOscillator();
+                var g = audio.createGain();
+                osc.connect(g); g.connect(audio.destination);
+                osc.frequency.setValueAtTime(880, audio.currentTime);
+                g.gain.setValueAtTime(0.1, audio.currentTime);
+                osc.start(); osc.stop(audio.currentTime + 0.2);
+
+                showHappyFeedback();
+                updateRecent(f);
+
+                f.isBiting = false;
+                f.isCaught = true; 
+                f.el.classList.remove('biting');
+                f.el.style.transition = "all 0.6s ease-in";
+                f.el.style.transform = `translate(${f.x}px, -100px) scale(0.3)`;
+                f.el.style.opacity = "0";
+
+                fishes = fishes.filter(item => item !== f);
+                setTimeout(() => { f.el.remove(); spawnFish(); }, 600);
+                nextQuestion();
+            } else {
+                // SAI (Bấm nhầm cá khác)
+                var audio = new (window.AudioContext || window.webkitAudioContext)();
+                var osc = audio.createOscillator();
+                osc.type = 'sawtooth';
+                osc.connect(audio.destination);
+                osc.frequency.setValueAtTime(120, audio.currentTime);
+                osc.start(); osc.stop(audio.currentTime + 0.3);
+
+                showFailOverlay();
+                f.isBiting = false; f.escaped = true; f.speed *= 4;
+                f.el.classList.remove('biting');
+            }
+        } else {
+            // Trường hợp cá tự nhả (hết thời gian bite)
             f.isBiting = false; f.escaped = true; f.speed *= 4;
             f.el.classList.remove('biting');
         }
@@ -337,7 +276,7 @@
         lineObj.style.height = '0px';
         bitingFish = null;
         isCooldown = true;
-        setTimeout(() => { isCooldown = false; }, 2000);
+        setTimeout(() => { isCooldown = false; }, 1500);
     }
 
     function showHappyFeedback() {
@@ -354,7 +293,7 @@
     }
 
     function updateRecent(f) {
-        recentFish.unshift({ emoji: f.emoji, en: f.data.en });
+        recentFish.unshift({ emoji: f.emoji, en: f.data.answer });
         if (recentFish.length > 3) recentFish.pop();
         recentDiv.innerHTML = recentFish.map(item => `
             <div class="recent-card">
@@ -368,15 +307,12 @@
         if (e) e.preventDefault();
         if (btnLock || !gameRunning) return;
         
-        initAudio();
         btnLock = true;
         arcadeBtn.disabled = true;
         setTimeout(() => { btnLock = false; arcadeBtn.disabled = false; }, 300);
 
         if (bitingFish) {
-            // Phân định thắng/thua khi có thao tác bấm
-            if (bitingFish.data.en === currentTask.en) resolveBite(true);
-            else resolveBite(false);
+            resolveBite(true); // Gửi tín hiệu đã bấm nút
         }
     }
 
