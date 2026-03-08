@@ -20,13 +20,14 @@
     "path": "games/Subway-worder/index.html"
   },
   {
-    "title": "Frogger ",
-    "description": "Cross the street, be careful",
+    "title": "Carnival Fun Shooter ",
+    "description": "Can you find all the destined words?",
     "path": "games/word-frogger/index.html"
   },
   {
-    "title": "Fishin ",
-    "description": "Cross the street, be careful",
+    "title": "Fishing Arcade ",
+    "description": "Fish the right fish, left the not right",
     "path": "games/fishing/index.html"
   }
 ]
+
