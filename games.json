@@ -28,6 +28,12 @@
     "title": "Fishing Arcade ",
     "description": "Fish the right fish, left the not right",
     "path": "games/fishing/index.html"
+  },
+   {
+    "title": "Wordle",
+    "description": Guess the five letters word, if cant balls explode,
+    "path": "games/wordle/index.html"
   }
 ]
+
 
