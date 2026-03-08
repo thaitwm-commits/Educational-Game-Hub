@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle - External List</title>
+    <style>
+        /* Giữ nguyên CSS cũ của bạn */
+        body { font-family: Arial, sans-serif; background: #121213; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        h1 { margin: 10px 0; letter-spacing: 4px; }
+        #resetBtn { position: absolute; top: 15px; left: 15px; width: 40px; cursor: pointer; }
+        #grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; }
+        .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .tile { width: clamp(45px, 10vw, 65px); height: clamp(45px, 10vw, 65px); border: 2px solid #3a3a3c; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; text-transform: uppercase; }
+        .correct { background: #6aaa64; border-color: #6aaa64; }
+        .present { background: #c9b458; border-color: #c9b458; }
+        .absent { background: #3a3a3c; border-color: #3a3a3c; }
+        #keyboard { margin-top: 20px; }
+        .keyrow { display: flex; justify-content: center; }
+        .key { background: #818384; border: none; margin: 3px; padding: 10px; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; min-width: 30px; }
+        .key.correct { background: #6aaa64; }
+        .key.present { background: #c9b458; }
+        .key.absent { background: #3a3a3c; }
+        #message { height: 30px; margin: 10px; font-weight: bold; color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+<img id="resetBtn" src="https://cdn-icons-png.flaticon.com/128/16586/16586062.png" alt="Reset">
+<h1>WORDLE</h1>
+<div id="message"></div>
+<div id="grid"></div>
+<div id="keyboard"></div>
+
+<script>
+    // Danh sách dự phòng nếu không tải được tệp list.txt
+    let WORDS = ["APPLE", "GRAPE", "STONE", "PLANT", "BRAVE"];
+    
+    let target;
+    let currentRow;
+    let currentCol;
+    let board;
+    let isGameOver = false;
+
+    const grid = document.getElementById("grid");
+    const keyboard = document.getElementById("keyboard");
+    const message = document.getElementById("message");
+
+    // Tải tệp list.txt khi ứng dụng bắt đầu
+    async function loadWords() {
+        try {
+            const response = await fetch('list.txt');
+            if (!response.ok) throw new Error("Failed to load list.txt");
+            const text = await response.text();
+            
+            // Tách các từ theo dòng hoặc dấu phẩy, chuyển thành chữ hoa và lọc từ 5 ký tự
+            const externalWords = text.split(/\r?\n|,/)
+                .map(w => w.trim().toUpperCase())
+                .filter(w => w.length === 5);
+
+            if (externalWords.length > 0) {
+                WORDS = externalWords;
+                console.log("Words loaded:", WORDS.length);
+            }
+        } catch (error) {
+            console.error("Error loading wordlist:", error);
+            showMessage("Using fallback wordlist");
+        }
+        startGame();
+    }
+
+    function startGame() {
+        target = WORDS[Math.floor(Math.random() * WORDS.length)];
+        currentRow = 0;
+        currentCol = 0;
+        isGameOver = false;
+        board = Array(6).fill().map(() => Array(5).fill(""));
+
+        grid.innerHTML = "";
+        keyboard.innerHTML = "";
+        message.innerText = "";
+
+        createGrid();
+        createKeyboard();
+    }
+
+    function createGrid() {
+        for (let r = 0; r < 6; r++) {
+            let rowDiv = document.createElement("div");
+            rowDiv.className = "row";
+            for (let c = 0; c < 5; c++) {
+                let tile = document.createElement("div");
+                tile.className = "tile";
+                tile.id = `tile-${r}-${c}`;
+                rowDiv.appendChild(tile);
+            }
+            grid.appendChild(rowDiv);
+        }
+    }
+
+    function createKeyboard() {
+        const rows = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+        rows.forEach(line => {
+            let rowDiv = document.createElement("div");
+            rowDiv.className = "keyrow";
+            if (line === "ZXCVBNM") addKey(rowDiv, "ENTER");
+            for (let letter of line) addKey(rowDiv, letter);
+            if (line === "ZXCVBNM") addKey(rowDiv, "DEL");
+            keyboard.appendChild(rowDiv);
+        });
+    }
+
+    function addKey(rowDiv, letter) {
+        let key = document.createElement("button");
+        key.innerText = letter;
+        key.className = "key";
+        key.dataset.key = letter;
+        key.onclick = () => pressKey(letter);
+        rowDiv.appendChild(key);
+    }
+
+    function pressKey(letter) {
+        if (isGameOver) return;
+
+        if (letter === "DEL") {
+            if (currentCol > 0) {
+                currentCol--;
+                board[currentRow][currentCol] = "";
+                updateTile(currentRow, currentCol, "");
+            }
+            return;
+        }
+
+        if (letter === "ENTER") {
+            submitGuess();
+            return;
+        }
+
+        if (currentCol < 5 && letter.length === 1 && letter.match(/[A-Z]/)) {
+            board[currentRow][currentCol] = letter;
+            updateTile(currentRow, currentCol, letter);
+            currentCol++;
+        }
+    }
+
+    function updateTile(r, c, letter) {
+        document.getElementById(`tile-${r}-${c}`).innerText = letter;
+    }
+
+    function submitGuess() {
+        if (currentCol < 5) {
+            showMessage("Not enough letters");
+            return;
+        }
+
+        let guess = board[currentRow].join("");
+
+        // KIỂM TRA: Từ nhập vào phải có trong danh sách list.txt
+        if (!WORDS.includes(guess)) {
+            showMessage("Not in word list");
+            return;
+        }
+
+        checkGuess(guess);
+
+        if (guess === target) {
+            showMessage("You win!");
+            isGameOver = true;
+            return;
+        }
+
+        currentRow++;
+        currentCol = 0;
+
+        if (currentRow === 6) {
+            showMessage("The word was: " + target);
+            isGameOver = true;
+        }
+    }
+
+    function checkGuess(guess) {
+        let targetArr = target.split("");
+        let guessArr = guess.split("");
+
+        // Pass 1: Kiểm tra chữ đúng vị trí (Green)
+        for (let i = 0; i < 5; i++) {
+            let tile = document.getElementById(`tile-${currentRow}-${i}`);
+            if (guessArr[i] === targetArr[i]) {
+                tile.classList.add("correct");
+                updateKeyColor(guessArr[i], "correct");
+                targetArr[i] = null;
+                guessArr[i] = null;
+            }
+        }
+
+        // Pass 2: Kiểm tra chữ đúng nhưng sai vị trí (Yellow)
+        for (let i = 0; i < 5; i++) {
+            if (guessArr[i] === null) continue;
+            let tile = document.getElementById(`tile-${currentRow}-${i}`);
+            let indexInTarget = targetArr.indexOf(guessArr[i]);
+            
+            if (indexInTarget !== -1) {
+                tile.classList.add("present");
+                updateKeyColor(guessArr[i], "present");
+                targetArr[indexInTarget] = null;
+            } else {
+                tile.classList.add("absent");
+                updateKeyColor(guessArr[i], "absent");
+            }
+        }
+    }
+
+    function updateKeyColor(letter, state) {
+        const key = document.querySelector(`[data-key='${letter}']`);
+        if (!key) return;
+        if (state === "correct") {
+            key.className = "key correct";
+        } else if (state === "present" && !key.classList.contains("correct")) {
+            key.className = "key present";
+        } else if (state === "absent" && !key.classList.contains("correct") && !key.classList.contains("present")) {
+            key.className = "key absent";
+        }
+    }
+
+    function showMessage(msg) {
+        message.innerText = msg;
+        if (msg !== "You win!" && !msg.startsWith("The word was")) {
+            setTimeout(() => { if (message.innerText === msg) message.innerText = ""; }, 2000);
+        }
+    }
+
+    document.addEventListener("keydown", (e) => {
+        let key = e.key.toUpperCase();
+        if (key === "BACKSPACE") pressKey("DEL");
+        else if (key === "ENTER") pressKey("ENTER");
+        else if (key.length === 1 && key.match(/[A-Z]/)) pressKey(key);
+    });
+
+    document.getElementById("resetBtn").onclick = startGame;
+
+    // Bắt đầu bằng việc tải danh sách từ
+    loadWords();
+
+</script>
+</body>
+</html>
