@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mocha Wordle</title>
     <style>
-        /* Giữ nguyên CSS cũ của bạn */
         body { font-family: Arial, sans-serif; background: #121213; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
         h1 { margin: 10px 0; letter-spacing: 4px; }
         #resetBtn { position: absolute; top: 15px; left: 15px; width: 40px; cursor: pointer; }
@@ -22,10 +21,24 @@
         .key.present { background: #c9b458; }
         .key.absent { background: #3a3a3c; }
         #message { height: 30px; margin: 10px; font-weight: bold; color: #ff4d4d; }
+        #bg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Đẩy ra sau cùng */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: brightness(0.4); /* Làm tối GIF để nhìn rõ chữ game */
+    transition: background-image 0.5s ease-in-out;
+}
     </style>
 </head>
 <body>
 
+<div id="bg-overlay"></div>
 <img id="resetBtn" src="https://cdn-icons-png.flaticon.com/128/16586/16586062.png" alt="Reset">
 <h1>WORDLE</h1>
 <div id="message"></div>
@@ -34,7 +47,7 @@
 
 <script>
     // Danh sách dự phòng nếu không tải được tệp list.txt
-    let WORDS = ["APPLE", "GRAPE", "STONE", "PLANT", "BRAVE"];
+    let WORDS = ["DEVIL", "ERROR", "HUNTED", "DEATH", "PENIS"];
     
     let target;
     let currentRow;
@@ -42,6 +55,17 @@
     let board;
     let isGameOver = false;
 
+    const BG_GIFS = [
+    "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyNHA4MGptZXUzc2EyZXJkeTJxajdxeWQyd3I5NXB6aXE3N3YwOHg0aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KuFERqzDb0pxe/giphy.gif", 
+    "https://i.pinimg.com/originals/ee/35/77/ee35770131dc97a83e2131676397a144.gif",
+    "https://animesher.com/orig/2/205/2057/20574/animesher.com_cafe-vaporwave-80s-2057444.gif"
+    "https://i.pinimg.com/originals/08/55/91/0855918ef559bc162b96419989e67642.gif"
+];
+
+function changeBackground() {
+    const randomGif = BG_GIFS[Math.floor(Math.random() * BG_GIFS.length)];
+    document.getElementById('bg-overlay').style.backgroundImage = `url('${randomGif}')`;
+}
     const grid = document.getElementById("grid");
     const keyboard = document.getElementById("keyboard");
     const message = document.getElementById("message");
@@ -53,7 +77,7 @@
             if (!response.ok) throw new Error("Failed to load list.txt");
             const text = await response.text();
             
-            // Tách các từ theo dòng hoặc dấu phẩy, chuyển thành chữ hoa và lọc từ 5 ký tự
+          
             const externalWords = text.split(/\r?\n|,/)
                 .map(w => w.trim().toUpperCase())
                 .filter(w => w.length === 5);
@@ -70,6 +94,8 @@
     }
 
     function startGame() {
+        changeBackground(); 
+        target = WORDS[Math.floor(Math.random()*WORDS.length)];
         target = WORDS[Math.floor(Math.random() * WORDS.length)];
         currentRow = 0;
         currentCol = 0;
@@ -245,3 +271,4 @@
 </body>
 
 </html>
+
