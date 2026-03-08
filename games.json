@@ -31,9 +31,10 @@
   },
    {
     "title": "Wordle",
-    "description": Guess the five letters word, if cant balls explode,
+    "description": "Guess the five letters word, if cant balls explode",
     "path": "games/wordle/index.html"
   }
 ]
+
 
 
