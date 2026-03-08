@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jungle Runner</title>
+    <title>Jungle Runner: Single Pro Edition</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; touch-action: none; }
-        #game-wrapper { display: flex; width: 100vw; height: 100vh; background: #333; position: relative; }
         
-        /* Vách ngăn trung tâm */
-        #divider { position: absolute; left: 50%; top: 0; width: 6px; height: 100%; background: #f1c40f; transform: translateX(-50%); z-index: 50; box-shadow: 0 0 15px #f1c40f; }
+        /* Chỉnh lại wrapper để căn giữa game 1 người chơi */
+        #game-wrapper { display: flex; justify-content: center; width: 100vw; height: 100vh; background: #222; position: relative; }
         
-        .screen { position: relative; flex: 1; overflow: hidden; }
+        .screen { position: relative; width: 390px; max-width: 100vw; height: 100%; overflow: hidden; box-shadow: 0 0 30px #000; }
         canvas { width: 100%; height: 100%; display: block; background: #1a2533; }
         
         #word-prompt-container { position: absolute; top: 10%; width: 100%; display: flex; justify-content: center; z-index: 100; pointer-events: none; }
@@ -19,8 +18,11 @@
         .prompt-img { max-height: 100px; display: block; margin: 0 auto; border-radius: 5px; }
         .prompt-text { font-size: 28px; color: #f1c40f; font-weight: bold; margin-top: 5px; }
         
-        #announcement { position: absolute; top: 40%; width: 100%; text-align: center; font-size: 50px; color: #ff3333; font-weight: bold; display: none; z-index: 60; text-shadow: 0 0 15px #000; }
-        .stats { position: absolute; bottom: 20px; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 8px; font-size: 13px; z-index: 20; }
+        #announcement { position: absolute; top: 40%; width: 100%; text-align: center; font-size: 50px; color: #ff3333; font-weight: bold; display: none; z-index: 60; text-shadow: 0 0 15px #000; pointer-events: none;}
+        
+        /* Stats gộp chung lại */
+        .stats { position: absolute; top: 10px; width: 100%; box-sizing: border-box; padding: 0 20px; display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; z-index: 20; text-shadow: 1px 1px 3px #000; pointer-events: none;}
+        
         #file-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; }
         .blinking { animation: blink 0.4s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
@@ -30,46 +32,51 @@
 
 <div id="file-overlay">
     <h2>🏎️ JUNGLE RUNNER</h2>
-    <p>Race against newest AI, who drives longest win.</p>
+    <p>Vuốt Trái/Phải để chuyển làn | Giữ vào XE để Nitro</p>
     <input type="file" id="fileInput" accept=".json,.txt">
 </div>
 
-<div id="divider"></div>
-
-<div id="word-prompt-container">
-    <div id="word-box" class="word-box" style="display: none;">
-        <img id="prompt-image" class="prompt-img" src="">
-        <div id="prompt-text" class="prompt-text"></div>
-    </div>
-</div>
-
-<div id="announcement" class="blinking">WATCH OUT!</div>
-
 <div id="game-wrapper">
     <div class="screen">
-        <div class="stats" style="left: 10px;">Mạng: <span id="p-lives">❤️❤️❤️</span> | Chuỗi: <span id="p-streak">0</span></div>
+        <div class="stats">
+            <span>Mạng: <span id="p-lives">❤️❤️❤️</span></span>
+            <span>Chuỗi: <span id="p-streak">0</span> | <span id="speed-tag">x2.0</span></span>
+        </div>
+        
+        <div id="word-prompt-container">
+            <div id="word-box" class="word-box" style="display: none;">
+                <img id="prompt-image" class="prompt-img" src="">
+                <div id="prompt-text" class="prompt-text"></div>
+            </div>
+        </div>
+
+        <div id="announcement" class="blinking">WATCH OUT!</div>
+
         <canvas id="canvasPlayer"></canvas>
-    </div>
-    <div class="screen">
-        <div class="stats" style="right: 10px; text-align: right;">Chuỗi AI: <span id="ai-streak">0</span> | <span id="speed-tag">x2.0</span></div>
-        <canvas id="canvasAI"></canvas>
     </div>
 </div>
 
 <script>
+// ==========================================
+// CÀI ĐẶT THỜI GIAN DELAY (CHỌN ĐÁP ÁN)
+// ==========================================
+const THINK_TIME_SEC = 2.5;  // <-- Điền số giây bạn muốn ở đây (1.0 = 1 giây, 2.0 = 2 giây)
+const SPAWN_DISTANCE = -300; // Vị trí sinh ra cổng (để -100 để cổng xuất hiện sát mép trên)
+// ==========================================
+
 const LANE_WIDTH = 130;
 const CANVAS_WIDTH = LANE_WIDTH * 3;
+
 const playerImg = new Image(); playerImg.src = 'car1.png';
-const aiImg = new Image(); aiImg.src = 'car2.png';
+const enemyImg = new Image(); enemyImg.src = 'car2.png'; // Dùng cho xe chướng ngại vật
 const bgImg = new Image(); bgImg.src = 'bg.png';
 
 let vocab = [], objects = [], speedLines = [];
 let gameState = 'START', isSlowMo = false, isNitro = false, isCooldown = false;
 let bgY = 0, difficulty = 2.0, pairsAnswered = 0, shakeIntensity = 0;
-let fileType = ''; // 'json' hoặc 'txt'
+let fileType = '';
 
 const player = { lane: 1, x: LANE_WIDTH * 1.5, y: 0, lives: 3, streak: 0 };
-const ai = { lane: 1, x: LANE_WIDTH * 1.5, streak: 0, targetLane: 1 };
 
 for(let i=0; i<25; i++) speedLines.push({ x: Math.random()*CANVAS_WIDTH, y: Math.random()*800, l: Math.random()*40+20 });
 
@@ -87,7 +94,7 @@ window.addEventListener('touchend', e => {
     isNitro = false;
     let touchEndX = e.changedTouches[0].clientX;
     let diff = touchEndX - touchStartX;
-    if (Math.abs(diff) > 30) { // Ngưỡng vuốt
+    if (Math.abs(diff) > 30) {
         if (diff > 0) player.lane = Math.min(2, player.lane + 1);
         else player.lane = Math.max(0, player.lane - 1);
     }
@@ -132,7 +139,7 @@ function spawn() {
 
     if (fileType === 'json') {
         pImg.src = current.url; pImg.style.display = 'block';
-        pTxt.innerText = ''; // Không hiện chữ khi dùng JSON
+        pTxt.innerText = ''; 
     } else {
         pImg.style.display = 'none';
         pTxt.innerText = current.q;
@@ -143,12 +150,13 @@ function spawn() {
     const distractors = vocab.filter(v => v.a !== current.a).sort(() => 0.5 - Math.random());
     for(let i=0; i<3; i++) {
         objects.push({ 
-            type: 'GATE', lane: i, y: -500, 
+            type: 'GATE', 
+            lane: i, 
+            y: SPAWN_DISTANCE, // Sử dụng biến khoảng cách xuất hiện
             text: i === correctLane ? current.a : distractors[i].a, 
             isCorrect: i === correctLane 
         });
     }
-    ai.targetLane = (Math.random() < 0.5) ? Math.floor(Math.random()*3) : correctLane;
 }
 
 function triggerWatchOut() {
@@ -166,13 +174,17 @@ function triggerWatchOut() {
 }
 
 function update() {
-    let speed = isNitro ? 22 : (isSlowMo ? 3.5 : 8 * (difficulty/2));
+    // Tự động tính tốc độ trôi chậm dựa trên số giây bạn muốn (giả định màn hình 60 FPS)
+    let distanceToPlayer = player.y - SPAWN_DISTANCE; 
+    let calculatedSlowSpeed = distanceToPlayer / (THINK_TIME_SEC * 60);
+
+    // Áp dụng tốc độ đã tính
+    let speed = isNitro ? 22 : (isSlowMo ? calculatedSlowSpeed : 8 * (difficulty/2));
+    
     bgY = (bgY + speed) % window.innerHeight;
     player.x += ((player.lane * LANE_WIDTH + LANE_WIDTH/2) - player.x) * 0.25;
-    ai.x += ((ai.targetLane * LANE_WIDTH + LANE_WIDTH/2) - ai.x) * 0.12;
 
     if (objects.length === 0 && !isCooldown) spawn();
-
     objects.forEach((obj) => {
         obj.y += speed;
         if (!obj.hit && obj.y > player.y - 15 && obj.y < player.y + 70 && obj.lane === player.lane) {
@@ -193,58 +205,56 @@ function update() {
 function updateUI() {
     document.getElementById('p-lives').innerText = "❤️".repeat(Math.max(0, player.lives));
     document.getElementById('p-streak').innerText = player.streak;
-    document.getElementById('ai-streak').innerText = ai.streak;
     document.getElementById('speed-tag').innerText = `x${difficulty.toFixed(1)}`;
 }
 
-function draw(canvasId, carX, isAI) {
-    const c = document.getElementById(canvasId);
+function draw() {
+    const c = document.getElementById('canvasPlayer');
     const ctx = c.getContext('2d');
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.save();
-    if (!isAI && shakeIntensity > 1) ctx.translate((Math.random()-0.5)*shakeIntensity, (Math.random()-0.5)*shakeIntensity);
+    
+    if (shakeIntensity > 1) ctx.translate((Math.random()-0.5)*shakeIntensity, (Math.random()-0.5)*shakeIntensity);
 
     const bgW = 120;
-    if (isAI) {
-        ctx.save(); ctx.translate(c.width, 0); ctx.scale(-1, 1);
-        ctx.drawImage(bgImg, 0, bgY, bgW, c.height); ctx.drawImage(bgImg, 0, bgY - c.height, bgW, c.height);
-        ctx.restore();
-    } else {
-        ctx.drawImage(bgImg, 0, bgY, bgW, c.height); ctx.drawImage(bgImg, 0, bgY - c.height, bgW, c.height);
-    }
+    ctx.drawImage(bgImg, 0, bgY, bgW, c.height); 
+    ctx.drawImage(bgImg, 0, bgY - c.height, bgW, c.height);
 
     // Speed Lines
     ctx.strokeStyle = isNitro ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.15)";
     speedLines.forEach(l => { ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, l.y + l.l); ctx.stroke(); });
 
-    // Vật thể
+    // Vẽ vật thể
     objects.forEach(obj => {
         if (obj.type === 'GATE') {
-            ctx.fillStyle = "#34495e"; // Màu cổng trung tính (Khó đoán)
+            ctx.fillStyle = "#34495e";
             ctx.fillRect(obj.lane*LANE_WIDTH + 15, obj.y, LANE_WIDTH - 30, 45);
             ctx.fillStyle = "white"; ctx.font = "bold 18px Arial"; ctx.textAlign = "center";
             ctx.fillText(obj.text, obj.lane*LANE_WIDTH + LANE_WIDTH/2, obj.y + 28);
         } else {
             ctx.save(); ctx.translate(obj.lane*LANE_WIDTH + LANE_WIDTH/2, obj.y + 50); ctx.rotate(Math.PI);
-            ctx.drawImage(aiImg, -35, -50, 70, 100); ctx.restore();
+            ctx.drawImage(enemyImg, -35, -50, 70, 100); ctx.restore(); // Dùng enemyImg
         }
     });
 
-    ctx.drawImage(isAI ? aiImg : playerImg, carX - 35, player.y, 70, 100);
+    // Vẽ xe người chơi
+    ctx.drawImage(playerImg, player.x - 35, player.y, 70, 100);
     ctx.restore();
 }
 
 function gameLoop() {
+    if (gameState !== 'PLAYING') return;
     update();
-    draw('canvasPlayer', player.x, false);
-    draw('canvasAI', ai.x, true);
+    draw();
     if (player.lives > 0) requestAnimationFrame(gameLoop);
     else { alert("GAME OVER!"); location.reload(); }
 }
 
 function resize() {
     const ch = window.innerHeight;
-    [document.getElementById('canvasPlayer'), document.getElementById('canvasAI')].forEach(c => { c.width = CANVAS_WIDTH; c.height = ch; });
+    const c = document.getElementById('canvasPlayer');
+    c.width = CANVAS_WIDTH; 
+    c.height = ch;
     player.y = ch - 180;
 }
 
