@@ -280,7 +280,7 @@ canvas.addEventListener('mousedown', (e) => {
             const dist = Math.hypot(x - m.hole.x, y - (m.hole.y + m.yOffset));
             if (dist < m.hole.radius) {
                 if (m.isCorrect) {
-                    flashScreen('flash-green'); showEmoji("❤️");
+                     showEmoji("❤️");
                     pairs = pairs.filter(p => p !== currentPair);
                     m.status = 'SINKING'; nextPair();
                 } else {
@@ -370,3 +370,4 @@ window.dispatchEvent(new Event('resize'));
 </script>
 </body>
 </html>
+
