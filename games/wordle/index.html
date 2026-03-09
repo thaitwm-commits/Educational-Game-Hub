@@ -7,8 +7,16 @@
     <style>
         body { font-family: Arial, sans-serif; background: #121213; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
         h1 { margin: 10px 0; letter-spacing: 4px; }
+        
+        /* CÁC NÚT ĐIỀU KHIỂN */
         #resetBtn { position: absolute; top: 15px; left: 15px; width: 40px; cursor: pointer; }
-        #grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; }
+        #muteBtn { position: absolute; top: 15px; right: 15px; width: 40px; cursor: pointer; opacity: 0.8; transition: opacity 0.3s; }
+        #muteBtn:hover { opacity: 1; }
+        
+        /* PHẦN HIỂN THỊ TÊN NHẠC */
+        #attribution { font-size: 12px; color: #a0a0a0; font-style: italic; margin-top: -5px; height: 15px; text-align: center; }
+
+        #grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; margin-top: 10px; }
         .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
         .tile { width: clamp(45px, 10vw, 65px); height: clamp(45px, 10vw, 65px); border: 2px solid #3a3a3c; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; text-transform: uppercase; }
         .correct { background: #6aaa64; border-color: #6aaa64; }
@@ -32,7 +40,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            filter: brightness(0.2);
+            filter: brightness(0.4);
             transition: background-image 0.5s ease-in-out;
         }
     </style>
@@ -41,13 +49,66 @@
 
 <div id="bg-overlay"></div>
 <img id="resetBtn" src="https://cdn-icons-png.flaticon.com/128/16586/16586062.png" alt="Reset">
+
+<img id="muteBtn" src="https://cdn-icons-png.flaticon.com/128/727/727240.png" alt="Mute">
+
 <h1>WORDLE</h1>
+
+<div id="attribution"></div>
+
+<audio id="bg-audio"></audio>
+
 <div id="message"></div>
 <div id="grid"></div>
 <div id="keyboard"></div>
 
 <script>
-    // Danh sách dự phòng nếu không tải được tệp list.txt
+    // LOGIC NHẠC
+    const playlist = [
+        { src: "ambience1.mp3", title: "honey jam - massobeats" },
+        { src: "ambience3.mp3", title: "lavender - massobeats" },
+        { src: "ambience4.mp3", title: "cotton cloud - fatb" }
+    ];
+    let currentTrackIndex = 0;
+    let isMusicPlaying = false;
+    
+    const audioPlayer = document.getElementById("bg-audio");
+    const attributionText = document.getElementById("attribution");
+    const muteBtn = document.getElementById("muteBtn");
+    
+    // ORI: 8% REMEMBER SUCKER
+    audioPlayer.volume = 0.08; 
+    
+    // Tải bài hát
+    function loadTrack(index) {
+        audioPlayer.src = playlist[index].src;
+        attributionText.innerText = `♪ ${playlist[index].title}`;
+    }
+    loadTrack(currentTrackIndex);
+
+    // Chuyển bài 
+    audioPlayer.addEventListener("ended", () => {
+        currentTrackIndex = (currentTrackIndex + 1) % playlist.length; // Loop lại nếu hết mảng
+        loadTrack(currentTrackIndex);
+        audioPlayer.play();
+    });
+
+    // Bật tắt nhạc 
+    muteBtn.onclick = () => {
+        if (isMusicPlaying) {
+            audioPlayer.pause();
+            isMusicPlaying = false;
+            muteBtn.src = "https://cdn-icons-png.flaticon.com/128/727/727240.png"; // Icon tắt loa
+        } else {
+            audioPlayer.play().catch(e => console.log("Need interaction:", e));
+            isMusicPlaying = true;
+            muteBtn.src = "https://cdn-icons-png.flaticon.com/128/728/728099.png"; // Icon mở loa
+        }
+    };
+    // --- PHẦN LOGIC NHẠC KẾT THÚC ---
+
+
+    // EASTER EGG FOR BALL CANCER
     let WORDS = ["DEVIL", "ERROR", "HUNTED", "DEATH", "PENIS"];
     
     let target;
@@ -59,7 +120,7 @@
     const BG_GIFS = [
         "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyNHA4MGptZXUzc2EyZXJkeTJxajdxeWQyd3I5NXB6aXE3N3YwOHg0aiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KuFERqzDb0pxe/giphy.gif", 
         "https://i.pinimg.com/originals/ee/35/77/ee35770131dc97a83e2131676397a144.gif",
-        "https://animesher.com/orig/2/205/2057/20574/animesher.com_cafe-vaporwave-80s-2057444.gif", // ĐÃ THÊM DẤU PHẨY Ở ĐÂY
+        "https://animesher.com/orig/2/205/2057/20574/animesher.com_cafe-vaporwave-80s-2057444.gif", 
         "https://i.pinimg.com/originals/08/55/91/0855918ef559bc162b96419989e67642.gif"
     ];
 
@@ -72,7 +133,7 @@
     const keyboard = document.getElementById("keyboard");
     const message = document.getElementById("message");
 
-    // Tải tệp list.txt khi ứng dụng bắt đầu
+    // HÀM TẢI LIST TXT
     async function loadWords() {
         try {
             const response = await fetch('list.txt');
@@ -148,6 +209,14 @@
     function pressKey(letter) {
         if (isGameOver) return;
 
+        // Auto-play music hj
+        if (!isMusicPlaying && audioPlayer.paused) {
+            audioPlayer.play().then(() => {
+                isMusicPlaying = true;
+                muteBtn.src = "https://cdn-icons-png.flaticon.com/128/728/728099.png";
+            }).catch(e => console.log(e));
+        }
+
         if (letter === "DEL") {
             if (currentCol > 0) {
                 currentCol--;
@@ -181,7 +250,6 @@
 
         let guess = board[currentRow].join("");
 
-        // KIỂM TRA: Từ nhập vào phải có trong danh sách list.txt
         if (!WORDS.includes(guess)) {
             showMessage("Not in word list");
             return;
@@ -208,7 +276,6 @@
         let targetArr = target.split("");
         let guessArr = guess.split("");
 
-        // Pass 1: Kiểm tra chữ đúng vị trí (Green)
         for (let i = 0; i < 5; i++) {
             let tile = document.getElementById(`tile-${currentRow}-${i}`);
             if (guessArr[i] === targetArr[i]) {
@@ -219,7 +286,6 @@
             }
         }
 
-        // Pass 2: Kiểm tra chữ đúng nhưng sai vị trí (Yellow)
         for (let i = 0; i < 5; i++) {
             if (guessArr[i] === null) continue;
             let tile = document.getElementById(`tile-${currentRow}-${i}`);
@@ -264,10 +330,8 @@
 
     document.getElementById("resetBtn").onclick = startGame;
 
-    // Bắt đầu bằng việc tải danh sách từ
     loadWords();
 
 </script>
 </body>
 </html>
-
