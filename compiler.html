@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Vocab JSON Compiler Pro (Merge Mode)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; line-height: 1.6; background: #eceff1; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; margin-top: 0; }
+        textarea { width: 100%; height: 120px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; box-sizing: border-box; font-family: monospace; }
+        button { padding: 12px 24px; background: #27ae60; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; transition: background 0.3s; margin-right: 5px; margin-bottom: 5px; }
+        button:hover { background: #219150; }
+        .btn-clear { background: #e74c3c; }
+        .btn-clear:hover { background: #c0392b; }
+        .btn-merge { background: #f39c12; }
+        .btn-merge:hover { background: #d35400; }
+        .panel { background: #f9f9f9; padding: 15px; border-left: 5px solid #3498db; margin-bottom: 20px; border-radius: 4px; }
+        #output { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-size: 13px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .hint { font-size: 12px; color: #666; margin-bottom: 10px; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚀 Vocab JSON Compiler Pro</h2>
+
+    <div class="panel" style="border-left-color: #f39c12;">
+        <label>📥 Chế độ Merge (Nhập file JSON cũ)</label>
+        <div class="hint">Chọn file JSON đã có để nạp danh sách cũ vào trình biên dịch.</div>
+        <input type="file" id="importJson" accept=".json">
+        <button class="btn-merge" onclick="mergeJson()">Nạp & Trộn dữ liệu</button>
+    </div>
+
+    <div class="panel">
+        <label>🛠️ Chế độ tạo Link hàng loạt (Advanced)</label>
+        <input type="text" id="sampleUrl" placeholder="Dán link mẫu vào đây (vd: .../bike.PNG)">
+        
+        <label>📝 Danh sách từ vựng mới:</label>
+        <div class="hint">Dán kiểu: <i>doll, ball, teddy</i> hoặc mỗi từ một dòng.</div>
+        <textarea id="wordList" placeholder="Ví dụ: doll, ball, teddy, puzzle..."></textarea>
+        
+        <button onclick="generateLinks()">Tạo & Cộng dồn Link ↓</button>
+    </div>
+
+    <hr>
+
+    <label>🔗 Tổng hợp danh sách Link (Cũ + Mới):</label>
+    <textarea id="inputLinks" placeholder="Dữ liệu sẽ hiển thị ở đây..."></textarea>
+    
+    <div style="margin-bottom: 15px;">
+        <button onclick="compile()">Biên dịch & Tải JSON</button>
+        <button class="btn-clear" onclick="clearAll()">Xóa trắng tất cả</button>
+    </div>
+    
+    <div id="output">Kết quả JSON sẽ hiện ở đây...</div>
+</div>
+
+<script>
+    // Hàm nạp dữ liệu từ file JSON có sẵn
+    function mergeJson() {
+        const fileInput = document.getElementById('importJson');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Vui lòng chọn một file JSON trước!");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!Array.isArray(data)) throw new Error("File JSON không đúng định dạng mảng.");
+
+                // Lấy danh sách URL từ file JSON
+                const oldUrls = data.map(item => item.url).filter(url => url);
+                
+                const currentLinks = document.getElementById('inputLinks').value.trim();
+                
+                if (currentLinks === "") {
+                    document.getElementById('inputLinks').value = oldUrls.join('\n');
+                } else {
+                    document.getElementById('inputLinks').value = currentLinks + '\n' + oldUrls.join('\n');
+                }
+                
+                alert("Đã nạp " + oldUrls.length + " từ cũ thành công!");
+                fileInput.value = ""; // Reset input file
+            } catch (err) {
+                alert("Lỗi đọc file: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function generateLinks() {
+        const sampleUrl = document.getElementById('sampleUrl').value.trim();
+        const wordsRaw = document.getElementById('wordList').value;
+
+        const words = wordsRaw
+            .split(/[,;\n\r]+/)
+            .map(w => w.trim())
+            .filter(w => w !== "");
+
+        if (!sampleUrl || words.length === 0) {
+            alert("Vui lòng nhập link mẫu và danh sách từ!");
+            return;
+        }
+
+        const lastSlashIndex = sampleUrl.lastIndexOf('/');
+        const folderPath = sampleUrl.substring(0, lastSlashIndex + 1);
+        const fileNameWithExt = sampleUrl.substring(lastSlashIndex + 1);
+        const extension = fileNameWithExt.includes('.') ? fileNameWithExt.substring(fileNameWithExt.lastIndexOf('.')) : '.png';
+
+        const newLinks = words.map(word => `${folderPath}${word}${extension}`).join('\n');
+        const currentLinks = document.getElementById('inputLinks').value.trim();
+
+        if (currentLinks === "") {
+            document.getElementById('inputLinks').value = newLinks;
+        } else {
+            document.getElementById('inputLinks').value = currentLinks + '\n' + newLinks;
+        }
+
+        document.getElementById('wordList').value = "";
+    }
+
+    function clearAll() {
+        if(confirm("Bạn có chắc muốn xóa sạch toàn bộ dữ liệu?")) {
+            document.getElementById('inputLinks').value = "";
+            document.getElementById('output').textContent = "Kết quả sẽ hiện ở đây...";
+        }
+    }
+
+    function compile() {
+        const text = document.getElementById('inputLinks').value;
+        const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+        
+        if (lines.length === 0) {
+            alert("Không có link nào để biên dịch!");
+            return;
+        }
+
+        const result = lines.map(url => {
+            const urlObj = url.trim();
+            const filename = urlObj.split('/').pop(); 
+            const englishWord = filename.split('.')[0].toLowerCase();
+            
+            return {
+                en: englishWord,
+                url: urlObj
+            };
+        });
+
+        const jsonString = JSON.stringify(result, null, 2);
+        document.getElementById('output').textContent = jsonString;
+
+        const blob = new Blob([jsonString], {type: "application/json"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "merged_vocab_data.json";
+        a.click();
+    }
+</script>
+
+</body>
+</html>
