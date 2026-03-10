@@ -8,9 +8,9 @@
         body { font-family: Arial, sans-serif; background: #121213; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; }
         h1 { margin: 10px 0; letter-spacing: 4px; }
         
-        /* CÁC NÚT ĐIỀU KHIỂN */
-        #resetBtn { position: absolute; top: 15px; left: 15px; width: 40px; cursor: pointer; }
-        #muteBtn { position: absolute; top: 15px; right: 15px; width: 40px; cursor: pointer; opacity: 0.8; transition: opacity 0.3s; }
+        /* CÁC NÚT ĐIỀU KHIỂN - Thêm touch-action: manipulation để chống zoom Safari */
+        #resetBtn { position: absolute; top: 15px; left: 15px; width: 40px; cursor: pointer; touch-action: manipulation; }
+        #muteBtn { position: absolute; top: 15px; right: 15px; width: 40px; cursor: pointer; opacity: 0.8; transition: opacity 0.3s; touch-action: manipulation; }
         #muteBtn:hover { opacity: 1; }
         
         /* PHẦN HIỂN THỊ TÊN NHẠC */
@@ -24,7 +24,10 @@
         .absent { background: #3a3a3c; border-color: #3a3a3c; }
         #keyboard { margin-top: 20px; }
         .keyrow { display: flex; justify-content: center; }
-        .key { background: #818384; border: none; margin: 3px; padding: 10px; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; min-width: 30px; }
+        
+        /* Thêm touch-action: manipulation vào phím bấm để chống zoom khi spam */
+        .key { background: #818384; border: none; margin: 3px; padding: 10px; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; min-width: 30px; touch-action: manipulation; }
+        
         .key.correct { background: #6aaa64; }
         .key.present { background: #c9b458; }
         .key.absent { background: #3a3a3c; }
@@ -209,13 +212,7 @@
     function pressKey(letter) {
         if (isGameOver) return;
 
-        // Auto-play music hj
-        if (!isMusicPlaying && audioPlayer.paused) {
-            audioPlayer.play().then(() => {
-                isMusicPlaying = true;
-                muteBtn.src = "https://cdn-icons-png.flaticon.com/128/728/728099.png";
-            }).catch(e => console.log(e));
-        }
+        // Auto-play music hj (ĐÃ BỎ LOGIC PLAY ĐỂ KHÔNG PHÁ MUTE)
 
         if (letter === "DEL") {
             if (currentCol > 0) {
@@ -335,6 +332,3 @@
 </script>
 </body>
 </html>
-
-
-
