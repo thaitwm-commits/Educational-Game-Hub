@@ -33,8 +33,14 @@
     "title": "Wordle",
     "description": "Guess the five letters word, if cant balls explode",
     "path": "games/wordle/index.html"
+  },
+  {
+    "title": "Compiler: NOT A GAME",
+    "description": "I'm too lazy to go home to compile so here hj",
+    "path": "compiler.html"
   }
 ]
+
 
 
 
