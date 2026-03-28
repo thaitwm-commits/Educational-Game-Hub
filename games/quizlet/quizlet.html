@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Flashcards</title>
+    <style>
+        /* Base Reset & Background */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://preview.redd.it/pikmin-desktop-background-v0-gt74wk1czewd1.png?width=640&crop=smart&auto=webp&s=9078341122432f3c436d7fdfb328c1900fb5a46c');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+        /* Progress Bar */
+        #progressBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 10;
+            display: none; /* Hidden until game starts */
+        }
+
+        #progressFill {
+            height: 100%;
+            width: 0%;
+            background: #6aaa64;
+            transition: width 0.3s ease;
+        }
+
+        /* Glassmorphism Card UI */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Start Screen (File Upload) */
+        #startScreen h1 {
+            font-size: clamp(2rem, 5vw, 2.5rem);
+            margin-bottom: 1rem;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+        }
+        
+        #startScreen p {
+            margin-bottom: 2rem;
+            color: #eee;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            background: rgba(106, 170, 100, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+
+        .upload-btn:hover {
+            background: rgba(106, 170, 100, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(106, 170, 100, 0.4);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Game Elements */
+        #gameCard {
+            display: none; /* Hidden initially */
+        }
+
+        #question {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 2x2 Answer Grid */
+        #choices {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        button.choice {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.2rem 1rem;
+            color: white;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        button.choice:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        button.choice:disabled {
+            cursor: default;
+        }
+
+        /* Feedback States */
+        button.choice.correct {
+            background: #6aaa64 !important;
+            border-color: #6aaa64 !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(106, 170, 100, 0.4);
+        }
+
+        button.choice.wrong {
+            background: #e95d5d !important;
+            border-color: #e95d5d !important;
+            opacity: 0.8;
+        }
+
+        /* End Screen */
+        #endScreen {
+            display: none;
+        }
+        
+        #endScreen h1 {
+            font-size: clamp(2rem, 6vw, 3rem);
+            margin-bottom: 1rem;
+            color: #6aaa64;
+        }
+        
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ccc;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+
+    <div id="progressBar">
+        <div id="progressFill"></div>
+    </div>
+
+    <div class="card" id="startScreen">
+        <h1>Smart Flashcards</h1>
+        <p>Select your .txt deck to begin.</p>
+        <label class="upload-btn">
+            Choose File
+            <input type="file" id="fileInput" accept=".txt">
+        </label>
+    </div>
+
+    <div class="card" id="gameCard">
+        <div id="gameContainer">
+            <div id="question">Loading...</div>
+            <div id="choices"></div>
+        </div>
+
+        <div id="endScreen">
+            <h1>🎉 Completed!</h1>
+            <div class="stat-box">
+                <div class="stat-label">Total Mistakes</div>
+                <div class="stat-value" id="totalMistakes">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Hardest Word</div>
+                <div class="stat-value" id="hardestWord">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Variables
+        let allQuestions = [];
+        let activeQuestions = [];
+        let allAnswers = [];
+        let errorMap = {};
+        let currentQuestion = null;
+        let totalWords = 0;
+
+        // --- FILE UPLOAD LOGIC ---
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const textData = event.target.result;
+                startGame(textData);
+            };
+            reader.readAsText(file);
+        });
+
+        function startGame(rawData) {
+            // Hide start screen, show game UI
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameCard').style.display = 'block';
+            document.getElementById('progressBar').style.display = 'block';
+
+            // Parse Data
+            const lines = rawData.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            for (let i = 0; i < lines.length; i += 2) {
+                const q = lines[i];
+                const a = lines[i + 1];
+                if (q && a) {
+                    allQuestions.push({ q, a });
+                    allAnswers.push(a);
+                    errorMap[q] = 0; // Initialize error map
+                }
+            }
+            
+            // Validate there's enough data
+            if (allQuestions.length === 0) {
+                alert("File empty or formatting incorrect. Please refresh and try again.");
+                return;
+            }
+
+            // Ensure unique answers for the pool
+            allAnswers = [...new Set(allAnswers)];
+            activeQuestions = [...allQuestions];
+            totalWords = activeQuestions.length;
+
+            loadNextQuestion();
+        }
+
+        // --- CORE GAME LOGIC ---
+
+        // Weighted random selection based on error count
+        function pickSmartQuestion() {
+            let totalWeight = 0;
+            let cumulativeWeights = [];
+
+            // Calculate weights: 1 base weight + 1 for each error
+            for (let i = 0; i < activeQuestions.length; i++) {
+                let weight = 1 + errorMap[activeQuestions[i].q];
+                totalWeight += weight;
+                cumulativeWeights.push(totalWeight);
+            }
+
+            let randomVal = Math.random() * totalWeight;
+            
+            for (let i = 0; i < cumulativeWeights.length; i++) {
+                if (randomVal < cumulativeWeights[i]) {
+                    return activeQuestions[i];
+                }
+            }
+            return activeQuestions[0]; // fallback
+        }
+
+        function updateProgress() {
+            const completed = totalWords - activeQuestions.length;
+            const percentage = (completed / totalWords) * 100;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+        }
+
+        function loadNextQuestion() {
+            updateProgress();
+
+            if (activeQuestions.length === 0) {
+                showEndScreen();
+                return;
+            }
+
+            currentQuestion = pickSmartQuestion();
+            document.getElementById('question').innerText = currentQuestion.q;
+
+            // Generate choices (1 correct + up to 3 random)
+            let choices = [currentQuestion.a];
+            
+            while (choices.length < 4 && choices.length < allAnswers.length) {
+                let randomAnswer = allAnswers[Math.floor(Math.random() * allAnswers.length)];
+                if (!choices.includes(randomAnswer)) {
+                    choices.push(randomAnswer);
+                }
+            }
+
+            // Shuffle choices
+            choices.sort(() => Math.random() - 0.5);
+
+            // Render buttons
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+            
+            choices.forEach(choiceText => {
+                const btn = document.createElement('button');
+                btn.className = 'choice';
+                btn.innerText = choiceText;
+                btn.onclick = () => checkAnswer(btn, choiceText);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedBtn, selectedText) {
+            // Disable all buttons to prevent double clicking
+            const allBtns = document.querySelectorAll('.choice');
+            allBtns.forEach(btn => btn.disabled = true);
+
+            const isCorrect = selectedText === currentQuestion.a;
+
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+                // Remove from active pool
+                activeQuestions = activeQuestions.filter(item => item.q !== currentQuestion.q);
+            } else {
+                selectedBtn.classList.add('wrong');
+                // Highlight the correct one
+                allBtns.forEach(btn => {
+                    if (btn.innerText === currentQuestion.a) {
+                        btn.classList.add('correct');
+                    }
+                });
+                // Increment error tracking
+                errorMap[currentQuestion.q]++;
+            }
+
+            // Wait 1.2s before moving on
+            setTimeout(() => {
+                loadNextQuestion();
+            }, 1200);
+        }
+
+        function showEndScreen() {
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('endScreen').style.display = 'block';
+            
+            // Set progress to absolute 100% at the end
+            document.getElementById('progressFill').style.width = '100%';
+
+            // Calculate stats
+            let totalMistakes = 0;
+            let hardestWord = "None!";
+            let maxErrors = 0;
+
+            for (const [word, errors] of Object.entries(errorMap)) {
+                totalMistakes += errors;
+                if (errors > maxErrors) {
+                    maxErrors = errors;
+                    hardestWord = `${word} (${errors} mistakes)`;
+                }
+            }
+
+            document.getElementById('totalMistakes').innerText = totalMistakes;
+            
+            if (totalMistakes === 0) {
+                document.getElementById('hardestWord').innerText = "Perfect Score! 🌟";
+            } else {
+                document.getElementById('hardestWord').innerText = hardestWord;
+            }
+        }
+    </script>
+</body>
+</html>
