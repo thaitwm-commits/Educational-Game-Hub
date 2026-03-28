@@ -34,6 +34,11 @@
     "description": "Guess the five letters word, if cant balls explode",
     "path": "games/wordle/index.html"
   },
+   {
+    "title": "Quizlet Mini",
+    "description": "A simple learning module, best for vocabulary",
+    "path": "games/quizlet/quizlet.html"
+  },
   {
     "title": "Compiler: NOT A GAME",
     "description": "I'm too lazy to go home to compile so here hj",
