@@ -28,7 +28,7 @@
         .overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4); /* Chỉnh tối thêm một chút để dễ nhìn chữ */
             z-index: -1;
         }
 
@@ -41,7 +41,7 @@
             height: 8px;
             background: rgba(0, 0, 0, 0.4);
             z-index: 10;
-            display: none; /* Hidden until game starts */
+            display: none;
         }
 
         #progressFill {
@@ -65,7 +65,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        /* Start Screen (File Upload) */
+        /* Start Screen (File Upload & Modes) */
         #startScreen h1 {
             font-size: clamp(2rem, 5vw, 2.5rem);
             margin-bottom: 1rem;
@@ -73,8 +73,28 @@
         }
         
         #startScreen p {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             color: #eee;
+        }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .mode-toggle input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
         }
 
         .upload-btn {
@@ -102,7 +122,16 @@
 
         /* Game Elements */
         #gameCard {
-            display: none; /* Hidden initially */
+            display: none;
+        }
+
+        #timerDisplay {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffca28;
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            display: none; /* Hidden unless FunCMode is ON */
         }
 
         #question {
@@ -140,6 +169,39 @@
             cursor: default;
         }
 
+        /* IDK Button */
+        #idkBtn {
+            margin-top: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.8rem 2rem;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        #idkBtn img {
+            width: 24px;
+            height: 24px;
+            filter: invert(1); /* Đổi màu icon đen thành trắng để nổi trên nền tối */
+        }
+
+        #idkBtn:hover:not(:disabled) {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #idkBtn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
         /* Feedback States */
         button.choice.correct {
             background: #6aaa64 !important;
@@ -155,16 +217,12 @@
         }
 
         /* End Screen */
-        #endScreen {
-            display: none;
-        }
-        
+        #endScreen { display: none; }
         #endScreen h1 {
             font-size: clamp(2rem, 6vw, 3rem);
             margin-bottom: 1rem;
             color: #6aaa64;
         }
-        
         .stat-box {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
@@ -172,14 +230,12 @@
             margin: 1rem 0;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
         .stat-label {
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #ccc;
         }
-        
         .stat-value {
             font-size: 1.5rem;
             font-weight: bold;
@@ -198,6 +254,12 @@
     <div class="card" id="startScreen">
         <h1>Smart Flashcards</h1>
         <p>Select your .txt deck to begin.</p>
+        
+        <label class="mode-toggle">
+            <input type="checkbox" id="funModeCheck">
+            <span>⚡ FunCMode (20 words, 5s/turn)</span>
+        </label>
+
         <label class="upload-btn">
             Choose File
             <input type="file" id="fileInput" accept=".txt">
@@ -206,8 +268,14 @@
 
     <div class="card" id="gameCard">
         <div id="gameContainer">
+            <div id="timerDisplay">⏱️ 5s</div>
             <div id="question">Loading...</div>
             <div id="choices"></div>
+            
+            <button id="idkBtn" onclick="handleIdk()">
+                <img src="https://cdn-icons-png.flaticon.com/128/19025/19025442.png" alt="IDK"> 
+                I Don't Know
+            </button>
         </div>
 
         <div id="endScreen">
@@ -231,11 +299,18 @@
         let errorMap = {};
         let currentQuestion = null;
         let totalWords = 0;
+        
+        // FunCMode Variables
+        let isFunMode = false;
+        let timerInterval = null;
+        let timeLeft = 5;
 
         // --- FILE UPLOAD LOGIC ---
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            isFunMode = document.getElementById('funModeCheck').checked;
 
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -246,12 +321,14 @@
         });
 
         function startGame(rawData) {
-            // Hide start screen, show game UI
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameCard').style.display = 'block';
             document.getElementById('progressBar').style.display = 'block';
 
-            // Parse Data
+            if (isFunMode) {
+                document.getElementById('timerDisplay').style.display = 'block';
+            }
+
             const lines = rawData.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             
             for (let i = 0; i < lines.length; i += 2) {
@@ -259,33 +336,36 @@
                 const a = lines[i + 1];
                 if (q && a) {
                     allQuestions.push({ q, a });
-                    allAnswers.push(a);
-                    errorMap[q] = 0; // Initialize error map
+                    allAnswers.push(a); // Lưu TẤT CẢ các đáp án để random
+                    errorMap[q] = 0;
                 }
             }
             
-            // Validate there's enough data
             if (allQuestions.length === 0) {
                 alert("File empty or formatting incorrect. Please refresh and try again.");
                 return;
             }
 
-            // Ensure unique answers for the pool
             allAnswers = [...new Set(allAnswers)];
-            activeQuestions = [...allQuestions];
-            totalWords = activeQuestions.length;
 
+            // Xử lý logic FunCMode: random 20 từ
+            if (isFunMode) {
+                allQuestions.sort(() => Math.random() - 0.5);
+                activeQuestions = allQuestions.slice(0, 20);
+            } else {
+                activeQuestions = [...allQuestions];
+            }
+
+            totalWords = activeQuestions.length;
             loadNextQuestion();
         }
 
         // --- CORE GAME LOGIC ---
 
-        // Weighted random selection based on error count
         function pickSmartQuestion() {
             let totalWeight = 0;
             let cumulativeWeights = [];
 
-            // Calculate weights: 1 base weight + 1 for each error
             for (let i = 0; i < activeQuestions.length; i++) {
                 let weight = 1 + errorMap[activeQuestions[i].q];
                 totalWeight += weight;
@@ -299,13 +379,30 @@
                     return activeQuestions[i];
                 }
             }
-            return activeQuestions[0]; // fallback
+            return activeQuestions[0];
         }
 
         function updateProgress() {
             const completed = totalWords - activeQuestions.length;
             const percentage = (completed / totalWords) * 100;
             document.getElementById('progressFill').style.width = `${percentage}%`;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            if (!isFunMode) return;
+
+            timeLeft = 5;
+            document.getElementById('timerDisplay').innerText = `⏱️ ${timeLeft}s`;
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerDisplay').innerText = `⏱️ ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    handleTimeout();
+                }
+            }, 1000);
         }
 
         function loadNextQuestion() {
@@ -316,10 +413,12 @@
                 return;
             }
 
+            // Kích hoạt lại nút IDK
+            document.getElementById('idkBtn').disabled = false;
+
             currentQuestion = pickSmartQuestion();
             document.getElementById('question').innerText = currentQuestion.q;
 
-            // Generate choices (1 correct + up to 3 random)
             let choices = [currentQuestion.a];
             
             while (choices.length < 4 && choices.length < allAnswers.length) {
@@ -329,10 +428,8 @@
                 }
             }
 
-            // Shuffle choices
             choices.sort(() => Math.random() - 0.5);
 
-            // Render buttons
             const choicesContainer = document.getElementById('choices');
             choicesContainer.innerHTML = '';
             
@@ -343,45 +440,67 @@
                 btn.onclick = () => checkAnswer(btn, choiceText);
                 choicesContainer.appendChild(btn);
             });
+
+            startTimer(); // Bắt đầu đếm giờ nếu ở FunCMode
+        }
+
+        // Vô hiệu hóa tất cả các nút (để ko bấm spam)
+        function disableAllButtons() {
+            clearInterval(timerInterval);
+            document.querySelectorAll('.choice').forEach(btn => btn.disabled = true);
+            document.getElementById('idkBtn').disabled = true;
+        }
+
+        // Highlight đáp án đúng
+        function highlightCorrectAnswer() {
+            document.querySelectorAll('.choice').forEach(btn => {
+                if (btn.innerText === currentQuestion.a) {
+                    btn.classList.add('correct');
+                }
+            });
         }
 
         function checkAnswer(selectedBtn, selectedText) {
-            // Disable all buttons to prevent double clicking
-            const allBtns = document.querySelectorAll('.choice');
-            allBtns.forEach(btn => btn.disabled = true);
-
+            disableAllButtons();
             const isCorrect = selectedText === currentQuestion.a;
 
             if (isCorrect) {
                 selectedBtn.classList.add('correct');
-                // Remove from active pool
                 activeQuestions = activeQuestions.filter(item => item.q !== currentQuestion.q);
             } else {
                 selectedBtn.classList.add('wrong');
-                // Highlight the correct one
-                allBtns.forEach(btn => {
-                    if (btn.innerText === currentQuestion.a) {
-                        btn.classList.add('correct');
-                    }
-                });
-                // Increment error tracking
+                highlightCorrectAnswer();
                 errorMap[currentQuestion.q]++;
             }
 
-            // Wait 1.2s before moving on
-            setTimeout(() => {
-                loadNextQuestion();
-            }, 1200);
+            setTimeout(() => { loadNextQuestion(); }, 1200);
+        }
+
+        // Nút IDK xử lý như đoán sai
+        function handleIdk() {
+            disableAllButtons();
+            highlightCorrectAnswer();
+            errorMap[currentQuestion.q]++;
+            
+            setTimeout(() => { loadNextQuestion(); }, 1200);
+        }
+
+        // Hết giờ trong chế độ FunCMode cũng tính như sai/IDK
+        function handleTimeout() {
+            disableAllButtons();
+            document.getElementById('timerDisplay').innerText = `⏳ Time's up!`;
+            highlightCorrectAnswer();
+            errorMap[currentQuestion.q]++;
+            
+            setTimeout(() => { loadNextQuestion(); }, 1500); // Đợi lâu hơn xíu cho người dùng nhìn
         }
 
         function showEndScreen() {
+            clearInterval(timerInterval);
             document.getElementById('gameContainer').style.display = 'none';
             document.getElementById('endScreen').style.display = 'block';
-            
-            // Set progress to absolute 100% at the end
             document.getElementById('progressFill').style.width = '100%';
 
-            // Calculate stats
             let totalMistakes = 0;
             let hardestWord = "None!";
             let maxErrors = 0;
