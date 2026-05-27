@@ -5,356 +5,266 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Flashcards</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Group các nút điều hướng ở góc trên bên phải */
         .top-controls {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            z-index: 100;
-            display: flex;
-            gap: 8px;
+            position: fixed; top: 12px; right: 12px; z-index: 100;
+            display: flex; gap: 8px;
         }
-
         #bgToggle, #btn-switch-flashcard {
             background: rgba(0,0,0,0.4);
             border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            border-radius: 8px;
-            padding: 6px 12px;
-            cursor: pointer;
+            color: white; border-radius: 8px;
+            padding: 6px 12px; cursor: pointer;
             font-size: 0.85rem;
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             transition: background 0.2s;
         }
-        
-        #bgToggle:hover, #btn-switch-flashcard:hover {
-            background: rgba(0,0,0,0.6);
-        }
+        #bgToggle:hover, #btn-switch-flashcard:hover { background: rgba(0,0,0,0.6); }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-image: url('https://www.thisiscolossal.com/wp-content/uploads/2026/03/waider-1.gif');
-            background-size: cover;
-            background-position: center;
+            background-size: cover; background-position: center;
             background-attachment: fixed;
             color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
         }
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: -1;
-        }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: -1; }
 
         #progressBar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 8px;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 10;
-            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 8px;
+            background: rgba(0,0,0,0.4); z-index: 10; display: none;
         }
-
-        #progressFill {
-            height: 100%;
-            width: 0%;
-            background: #6aaa64;
-            transition: width 0.3s ease;
-        }
+        #progressFill { height: 100%; width: 0%; background: #6aaa64; transition: width 0.3s ease; }
 
         .break-marker {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background: #ffca28;
-            z-index: 11;
-            transform: translateX(-50%);
+            position: absolute; top: 0; height: 100%; width: 4px;
+            background: #ffca28; z-index: 11; transform: translateX(-50%);
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 95%;
-            max-width: 820px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        #startScreen h1 {
-            font-size: clamp(2rem, 5vw, 2.5rem);
-            margin-bottom: 1rem;
-            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
-        }
-        
-        #startScreen p {
-            margin-bottom: 1.5rem;
-            color: #eee;
-        }
-
-        .mode-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 2rem;
-        }
-
-        .mode-selector label {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
+            border-radius: 16px; padding: 2.5rem 2rem;
             border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 1.1rem;
-            transition: background 0.2s;
+            width: 95%; max-width: 820px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
 
-        .mode-selector label:hover {
-            background: rgba(0, 0, 0, 0.4);
-        }
+        #startScreen h1 { font-size: clamp(2rem,5vw,2.5rem); margin-bottom: 1rem; text-shadow: 1px 1px 4px rgba(0,0,0,0.4); }
+        #startScreen p { margin-bottom: 1.5rem; color: #eee; }
 
-        .mode-selector input {
-            cursor: pointer;
-            width: 18px;
-            height: 18px;
+        .mode-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 2rem; }
+        .mode-selector label {
+            background: rgba(0,0,0,0.2); padding: 0.8rem 1rem;
+            border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; font-size: 1.1rem; transition: background 0.2s;
         }
+        .mode-selector label:hover { background: rgba(0,0,0,0.4); }
+        .mode-selector input { cursor: pointer; width: 18px; height: 18px; }
+
+        /* ── File chooser buttons ── */
+        .file-chooser { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; }
 
         .upload-btn {
             display: inline-block;
-            background: rgba(106, 170, 100, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(106,170,100,0.8);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px; padding: 1rem 2rem;
+            color: white; font-size: 1.1rem; cursor: pointer;
+            transition: all 0.2s ease; font-weight: bold;
+        }
+        .upload-btn:hover { background: rgba(106,170,100,1); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(106,170,100,0.4); }
+
+        .preset-btn {
+            display: inline-block;
+            background: rgba(255,202,40,0.25);
+            border: 1px solid rgba(255,202,40,0.5);
+            border-radius: 12px; padding: 1rem 2rem;
+            color: white; font-size: 1.1rem; cursor: pointer;
+            transition: all 0.2s ease; font-weight: bold;
+        }
+        .preset-btn:hover { background: rgba(255,202,40,0.45); transform: translateY(-2px); }
+
+        input[type="file"] { display: none; }
+
+        /* ── Preset file list panel ── */
+        #presetPanel {
+            display: none;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 12px;
-            padding: 1rem 2rem;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: bold;
-        }
-
-        .upload-btn:hover {
-            background: rgba(106, 170, 100, 1);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(106, 170, 100, 0.4);
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        #gameCard, #studyContainer, #breakScreen {
-            display: none;
-        }
-
-        #timerDisplay {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #ffca28;
-            margin-bottom: 0.5rem;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-            display: none; 
-        }
-
-        #question, #studyQuestion {
-            font-size: clamp(1rem, 2.5vw, 1.4rem);
-            font-weight: bold;
-            margin-bottom: 2rem;
-            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
-            line-height: 1.5;
-        }
-
-        #studyAnswer {
-            font-size: clamp(1rem, 2.5vw, 1.3rem);
-            color: #ffca28;
-            margin-bottom: 2.5rem;
-            font-weight: bold;
-            background: rgba(0,0,0,0.2);
             padding: 1rem;
-            border-radius: 8px;
-            line-height: 1.5;
+            margin-top: 0.5rem;
+            text-align: left;
+            max-height: 260px;
+            overflow-y: auto;
         }
+        #presetPanel::-webkit-scrollbar { width: 6px; }
+        #presetPanel::-webkit-scrollbar-track { background: transparent; }
+        #presetPanel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
 
-        #choices {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+        #presetPanel h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #ccc; margin-bottom: 0.75rem; }
+
+        .preset-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.65rem 0.75rem; border-radius: 8px;
+            cursor: pointer; transition: background 0.15s;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
+        .preset-item:last-child { border-bottom: none; }
+        .preset-item:hover { background: rgba(255,255,255,0.1); }
+
+        .preset-item-name { font-size: 1rem; font-weight: 500; }
+        .preset-item-badges { display: flex; gap: 6px; align-items: center; }
+
+        .badge-save {
+            font-size: 0.72rem; background: rgba(106,170,100,0.7);
+            padding: 2px 8px; border-radius: 20px; color: #fff; white-space: nowrap;
+        }
+        .badge-clear {
+            font-size: 0.72rem; background: rgba(233,93,93,0.6);
+            padding: 2px 8px; border-radius: 20px; color: #fff; cursor: pointer;
+            white-space: nowrap;
+        }
+        .badge-clear:hover { background: rgba(233,93,93,0.9); }
+
+        /* ── Resume banner ── */
+        #resumeBanner {
+            display: none;
+            background: rgba(106,170,100,0.2);
+            border: 1px solid rgba(106,170,100,0.5);
+            border-radius: 10px; padding: 0.9rem 1rem;
+            margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;
+        }
+        #resumeBanner strong { color: #6aaa64; }
+        .resume-actions { display: flex; gap: 10px; margin-top: 0.75rem; justify-content: center; }
+        .btn-resume, .btn-restart {
+            padding: 0.5rem 1.4rem; border-radius: 8px; cursor: pointer;
+            font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.25);
+            font-weight: 600; transition: all 0.2s;
+        }
+        .btn-resume { background: rgba(106,170,100,0.7); color: #fff; }
+        .btn-resume:hover { background: rgba(106,170,100,1); }
+        .btn-restart { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-restart:hover { background: rgba(255,255,255,0.2); }
+
+        /* ── Game card inner ── */
+        #gameCard, #studyContainer, #breakScreen { display: none; }
+        #timerDisplay {
+            font-size: 1.5rem; font-weight: bold; color: #ffca28;
+            margin-bottom: 0.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); display: none;
+        }
+        #question, #studyQuestion {
+            font-size: clamp(1rem,2.5vw,1.4rem); font-weight: bold;
+            margin-bottom: 2rem; text-shadow: 1px 1px 4px rgba(0,0,0,0.4); line-height: 1.5;
+        }
+        #studyAnswer {
+            font-size: clamp(1rem,2.5vw,1.3rem); color: #ffca28;
+            margin-bottom: 2.5rem; font-weight: bold;
+            background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; line-height: 1.5;
+        }
+        #choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 
         button.choice, .nav-btns button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 12rem 1rem;
-            padding: 1.2rem 1rem;
-            color: white;
-            font-size: clamp(0.85rem, 2vw, 1rem);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            text-align: left;
-            line-height: 1.4;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px; padding: 1.2rem 1rem;
+            color: white; font-size: clamp(0.85rem,2vw,1rem);
+            cursor: pointer; transition: all 0.2s ease;
+            font-weight: 500; text-align: left; line-height: 1.4;
         }
-
         button.choice:hover:not(:disabled), .nav-btns button:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
+            background: rgba(255,255,255,0.25); transform: translateY(-2px);
         }
+        button.choice:disabled, .nav-btns button:disabled { cursor: default; opacity: 0.5; transform: none; }
 
-        button.choice:disabled, .nav-btns button:disabled {
-            cursor: default;
-            opacity: 0.5;
-            transform: none;
-        }
-
-        .nav-btns {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-
-        .nav-btns button {
-            flex: 1;
-            text-align: center;
-        }
+        .nav-btns { display: flex; justify-content: space-between; gap: 1rem; }
+        .nav-btns button { flex: 1; text-align: center; }
 
         #idkBtn {
-            margin-top: 1.5rem;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 0.8rem 2rem;
-            color: white;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
+            margin-top: 1.5rem; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 12px;
+            padding: 0.8rem 2rem; color: white; font-size: 1.1rem;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
         }
+        #idkBtn img { width: 24px; height: 24px; filter: invert(1); }
+        #idkBtn:hover:not(:disabled) { background: rgba(0,0,0,0.5); }
+        #idkBtn:disabled { opacity: 0.5; cursor: default; }
 
-        #idkBtn img {
-            width: 24px;
-            height: 24px;
-            filter: invert(1);
-        }
-
-        #idkBtn:hover:not(:disabled) {
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        #idkBtn:disabled {
-            opacity: 0.5;
-            cursor: default;
-        }
-
-        button.choice.correct {
-            background: #6aaa64 !important;
-            border-color: #6aaa64 !important;
-            transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(106, 170, 100, 0.4);
-        }
-
-        button.choice.wrong {
-            background: #e95d5d !important;
-            border-color: #e95d5d !important;
-            opacity: 0.8;
-        }
+        button.choice.correct { background: #6aaa64 !important; border-color: #6aaa64 !important; transform: scale(1.02); box-shadow: 0 4px 15px rgba(106,170,100,0.4); }
+        button.choice.wrong { background: #e95d5d !important; border-color: #e95d5d !important; opacity: 0.8; }
 
         #endScreen { display: none; }
-        #endScreen h1 {
-            font-size: clamp(2rem, 6vw, 3rem);
-            margin-bottom: 1rem;
-            color: #6aaa64;
-        }
-        
-        #breakScreen h2 {
-            font-size: clamp(2rem, 5vw, 3rem);
-            color: #ffca28;
-            margin-bottom: 2rem;
-        }
+        #endScreen h1 { font-size: clamp(2rem,6vw,3rem); margin-bottom: 1rem; color: #6aaa64; }
+        #breakScreen h2 { font-size: clamp(2rem,5vw,3rem); color: #ffca28; margin-bottom: 2rem; }
 
         .stat-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem;
+            margin: 1rem 0; border: 1px solid rgba(255,255,255,0.1);
         }
-        .stat-label {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #ccc;
-        }
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 0.5rem;
-        }
+        .stat-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #ccc; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; margin-top: 0.5rem; }
     </style>
 </head>
 <body>
     <div class="top-controls">
-        <button id="btn-switch-flashcard" onclick="window.location.href='../quizlet.html'">
-            🔀 Shuffle mode
-        </button>
+        <button id="btn-switch-flashcard" onclick="window.location.href='../quizlet.html'">🔀 Shuffle mode</button>
         <button id="bgToggle" onclick="toggleBg()">🖼️ BG: ON</button>
     </div>
-
     <div class="overlay"></div>
+    <div id="progressBar"><div id="progressFill"></div></div>
 
-    <div id="progressBar">
-        <div id="progressFill"></div>
-    </div>
-
+    <!-- ══════════════ START SCREEN ══════════════ -->
     <div class="card" id="startScreen">
         <h1>Smart Flashcards</h1>
         <p>Select mode and deck to begin.</p>
-        
+
         <div class="mode-selector">
             <label><input type="radio" name="gameMode" value="normal" checked> Normal Mode</label>
-            <label><input type="radio" name="gameMode" value="study"> 📚 Study Mode</label>
-            <label><input type="radio" name="gameMode" value="fun"> ⚡ Fun Mode (20 câu, 5s)</label>
+            <label><input type="radio" name="gameMode" value="study">  Study Mode</label>
+            <label><input type="radio" name="gameMode" value="fun"> 'Fun' Mode (20 câu, 5s)</label>
         </div>
 
-        <label class="upload-btn">
-            Choose File
-            <input type="file" id="fileInput" accept=".txt">
-        </label>
+        <!-- Resume banner (shown when a save is detected for chosen file) -->
+        <div id="resumeBanner">
+            <strong>Save loaded</strong><br>
+            <span id="resumeInfo"></span>
+            <div class="resume-actions">
+                <button class="btn-resume" onclick="confirmResume()">▶ Tiếp tục</button>
+                <button class="btn-restart" onclick="confirmRestart()">↺ Bắt đầu lại</button>
+            </div>
+        </div>
+
+        <div class="file-chooser">
+            <label class="upload-btn">
+                Upload txt
+                <input type="file" id="fileInput" accept=".txt">
+            </label>
+            <button class="preset-btn" onclick="togglePresetPanel()">Choose preset ▾</button>
+        </div>
+
+        <div id="presetPanel">
+            <h3>Preset</h3>
+            <div id="presetList"></div>
+        </div>
     </div>
 
+    <!-- ══════════════ GAME CARD ══════════════ -->
     <div class="card" id="gameCard">
         <div id="gameContainer">
             <div id="timerDisplay">⏱️ 5s</div>
             <div id="question">Loading...</div>
             <div id="choices"></div>
-            
             <button id="idkBtn" onclick="handleIdk()">
-                <img src="https://cdn-icons-png.flaticon.com/128/19025/19025442.png" alt="IDK"> 
+                <img src="https://cdn-icons-png.flaticon.com/128/19025/19025442.png" alt="IDK">
                 I Don't Know
             </button>
         </div>
@@ -383,310 +293,464 @@
                 <div class="stat-label">Hardest Question</div>
                 <div class="stat-value" id="hardestWord">-</div>
             </div>
+            <div class="stat-box">
+                <div class="stat-label">Save đã được xóa</div>
+                <div class="stat-value" style="font-size:1rem;color:#ccc;">Hoàn thành rồi! Deck này reset về trạng thái mới.</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // ── Toggle background ──────────────────────────────────────
-        function toggleBg() {
-            const btn = document.getElementById('bgToggle');
-            const isOn = document.body.style.backgroundImage !== 'none';
-            if (isOn) {
-                document.body.style.backgroundImage = 'none';
-                document.body.style.backgroundColor = '#1a1a2e';
-                btn.textContent = '🖼️ BG: OFF';
-            } else {
-                document.body.style.backgroundImage = "url('https://www.thisiscolossal.com/wp-content/uploads/2026/03/waider-1.gif')";
-                document.body.style.backgroundColor = '';
-                btn.textContent = '🖼️ BG: ON';
-            }
+    // ════════════════════════════════════════════════
+    //  CẤU HÌNH: Thêm tên file .txt của bạn vào đây
+    //  (file phải nằm cùng thư mục với file HTML này)
+    // ════════════════════════════════════════════════
+    const PRESET_FILES = [
+        { name: "PPNC tong hop", file: "PPNC-final.txt" },
+        { name: "PPNC giua ki", file: "PPNC.txt" },
+        { name: "BOKHANHLINH",    file: "PTNT-basic.txt" },
+        // Thêm vào đây: { name: "Tên hiển thị", file: "ten_file.txt" },
+    ];
+
+    // ── Toggle background ──────────────────────────────────────
+    function toggleBg() {
+        const btn = document.getElementById('bgToggle');
+        const isOn = document.body.style.backgroundImage !== 'none';
+        if (isOn) {
+            document.body.style.backgroundImage = 'none';
+            document.body.style.backgroundColor = '#1a1a2e';
+            btn.textContent = '🖼️ BG: OFF';
+        } else {
+            document.body.style.backgroundImage = "url('https://www.thisiscolossal.com/wp-content/uploads/2026/03/waider-1.gif')";
+            document.body.style.backgroundColor = '';
+            btn.textContent = '🖼️ BG: ON';
+        }
+    }
+
+    // ── State ──────────────────────────────────────────────────
+    let allQuestions    = [];
+    let activeQuestions = [];
+    let errorMap        = {};
+    let currentQuestion = null;
+    let totalWords      = 0;
+    let currentMode     = 'normal';
+    let timerInterval   = null;
+    let timeLeft        = 5;
+    let studyIndex      = 0;
+    let seenBreaks      = new Set();
+    let currentDeckKey  = null;   // localStorage key cho deck đang học
+    let pendingRawData  = null;   // raw text nếu có save cũ, chờ user chọn resume/restart
+
+    // ════════════════════════════════════════════════
+    //  LOCAL STORAGE HELPERS
+    // ════════════════════════════════════════════════
+    function saveKey(deckId) {
+        return `flashcard_save_${deckId}`;
+    }
+
+    function saveProgress() {
+        if (!currentDeckKey || currentMode === 'study') return;
+        const data = {
+            mode: currentMode,
+            errorMap,
+            remainingQKeys: activeQuestions.map(q => q.q),  // chỉ lưu key câu hỏi
+            totalWords,
+            savedAt: Date.now()
+        };
+        try {
+            localStorage.setItem(saveKey(currentDeckKey), JSON.stringify(data));
+        } catch(e) { /* storage full – bỏ qua */ }
+    }
+
+    function loadSave(deckId) {
+        try {
+            const raw = localStorage.getItem(saveKey(deckId));
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    }
+
+    function clearSave(deckId) {
+        localStorage.removeItem(saveKey(deckId));
+    }
+
+    function hasSave(deckId) {
+        return !!localStorage.getItem(saveKey(deckId));
+    }
+
+    // ════════════════════════════════════════════════
+    //  PRESET PANEL
+    // ════════════════════════════════════════════════
+    function togglePresetPanel() {
+        const panel = document.getElementById('presetPanel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function renderPresetList() {
+        const list = document.getElementById('presetList');
+        list.innerHTML = '';
+
+        if (PRESET_FILES.length === 0) {
+            list.innerHTML = '<p style="color:#ccc;font-size:0.9rem;padding:0.5rem">Chưa có deck nào. Thêm vào mảng PRESET_FILES trong code.</p>';
+            return;
         }
 
-        // ── State ──────────────────────────────────────────────────
-        let allQuestions   = [];   // { q, correct, choices[4] }
-        let activeQuestions = [];
-        let errorMap       = {};
-        let currentQuestion = null;
-        let totalWords     = 0;
+        PRESET_FILES.forEach(deck => {
+            const deckId = deck.file;
+            const hasSaveData = hasSave(deckId);
 
-        let currentMode    = 'normal';
-        let timerInterval  = null;
-        let timeLeft       = 5;
-        let studyIndex     = 0;
-        let seenBreaks     = new Set();
-
-        // ── File input ─────────────────────────────────────────────
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const modeRadios = document.getElementsByName('gameMode');
-            for (const radio of modeRadios) {
-                if (radio.checked) currentMode = radio.value;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                startGame(event.target.result);
-            };
-            reader.readAsText(file);
+            const item = document.createElement('div');
+            item.className = 'preset-item';
+            item.innerHTML = `
+                <span class="preset-item-name">📄 ${deck.name}</span>
+                <span class="preset-item-badges">
+                    ${hasSaveData ? `<span class="badge-save">💾</span>
+                    <span class="badge-clear" onclick="event.stopPropagation(); deleteSaveFromList('${deckId}')">✕ 🚮</span>` : ''}
+                </span>
+            `;
+            item.addEventListener('click', () => loadPresetFile(deck));
+            list.appendChild(item);
         });
+    }
 
-        // ── Parse file: nhóm 5 dòng ───────────────────────────────
-        function parseFile(rawData) {
-            const lines = rawData.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            const questions = [];
+    function deleteSaveFromList(deckId) {
+        clearSave(deckId);
+        renderPresetList();
+    }
 
-            for (let i = 0; i + 4 < lines.length; i += 5) {
-                const q       = lines[i];
-                const correct = lines[i + 1];   // A – luôn là đáp án đúng
-                const b       = lines[i + 2];
-                const c       = lines[i + 3];
-                const d       = lines[i + 4];
+    // ════════════════════════════════════════════════
+    //  LOAD FILE (preset hoặc upload)
+    // ════════════════════════════════════════════════
+    function loadPresetFile(deck) {
+        document.getElementById('presetPanel').style.display = 'none';
+        currentDeckKey = deck.file;
 
-                questions.push({
-                    q,
-                    correct,
-                    choices: [correct, b, c, d]  // sẽ được xáo khi hiển thị
-                });
+        fetch(deck.file)
+            .then(r => {
+                if (!r.ok) throw new Error('Không tìm thấy file: ' + deck.file);
+                return r.text();
+            })
+            .then(text => handleFileLoaded(text, deck.file))
+            .catch(err => alert(err.message));
+    }
 
-                errorMap[q] = 0;
-            }
-            return questions;
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        currentDeckKey = file.name;
+        const reader = new FileReader();
+        reader.onload = ev => handleFileLoaded(ev.target.result, file.name);
+        reader.readAsText(file);
+    });
+
+    function handleFileLoaded(rawText, deckId) {
+        // Đọc mode trước
+        const modeRadios = document.getElementsByName('gameMode');
+        for (const r of modeRadios) if (r.checked) currentMode = r.value;
+
+        pendingRawData = rawText;
+        currentDeckKey = deckId;
+
+        // Kiểm tra save
+        if (currentMode !== 'study' && hasSave(deckId)) {
+            const save = loadSave(deckId);
+            const pct = Math.round(((save.totalWords - save.remainingQKeys.length) / save.totalWords) * 100);
+            const ago = formatTimeAgo(save.savedAt);
+
+            document.getElementById('resumeInfo').innerHTML =
+                `Deck: <strong>${deckId}</strong> — đã hoàn thành <strong>${pct}%</strong> (${ago})`;
+            document.getElementById('resumeBanner').style.display = 'block';
+        } else {
+            startGame(rawText, false);
+        }
+    }
+
+    function formatTimeAgo(ts) {
+        const diff = Date.now() - ts;
+        const m = Math.floor(diff / 60000);
+        if (m < 1) return 'vừa xong';
+        if (m < 60) return `${m} phút trước`;
+        const h = Math.floor(m / 60);
+        if (h < 24) return `${h} giờ trước`;
+        return `${Math.floor(h/24)} ngày trước`;
+    }
+
+    function confirmResume() {
+        document.getElementById('resumeBanner').style.display = 'none';
+        startGame(pendingRawData, true);
+    }
+
+    function confirmRestart() {
+        clearSave(currentDeckKey);
+        document.getElementById('resumeBanner').style.display = 'none';
+        startGame(pendingRawData, false);
+    }
+
+    // ════════════════════════════════════════════════
+    //  PARSE + START
+    // ════════════════════════════════════════════════
+    function parseFile(rawData) {
+        const lines = rawData.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const questions = [];
+        for (let i = 0; i + 4 < lines.length; i += 5) {
+            const q = lines[i], correct = lines[i+1], b = lines[i+2], c = lines[i+3], d = lines[i+4];
+            questions.push({ q, correct, choices: [correct, b, c, d] });
+            errorMap[q] = 0;
+        }
+        return questions;
+    }
+
+    function startGame(rawData, resuming) {
+        allQuestions    = [];
+        activeQuestions = [];
+        errorMap        = {};
+        seenBreaks.clear();
+
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('gameCard').style.display    = 'block';
+        document.getElementById('progressBar').style.display = 'block';
+
+        allQuestions = parseFile(rawData);
+
+        if (allQuestions.length === 0) {
+            alert("File trống hoặc sai định dạng. Mỗi câu cần đúng 5 dòng:\nCâu hỏi\nA (đúng)\nB\nC\nD");
+            return;
         }
 
-        // ── Start game ─────────────────────────────────────────────
-        function startGame(rawData) {
-            allQuestions    = [];
-            activeQuestions = [];
-            errorMap        = {};
-            seenBreaks.clear();
+        if (currentMode === 'fun') {
+            allQuestions.sort(() => Math.random() - 0.5);
+            activeQuestions = allQuestions.slice(0, 20);
+            document.getElementById('timerDisplay').style.display = 'block';
+        } else {
+            activeQuestions = [...allQuestions];
+        }
 
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameCard').style.display    = 'block';
-            document.getElementById('progressBar').style.display = 'block';
-
-            allQuestions = parseFile(rawData);
-
-            if (allQuestions.length === 0) {
-                alert("File trống hoặc sai định dạng. Mỗi câu cần đúng 5 dòng:\nCâu hỏi\nA (đúng)\nB\nC\nD");
-                return;
-            }
-
-            if (currentMode === 'fun') {
-                allQuestions.sort(() => Math.random() - 0.5);
-                activeQuestions = allQuestions.slice(0, 20);
-                document.getElementById('timerDisplay').style.display = 'block';
-            } else {
-                activeQuestions = [...allQuestions];
-            }
-
-            totalWords = activeQuestions.length;
-            drawBreakMarkers();
-
-            if (currentMode === 'study') {
-                document.getElementById('gameContainer').style.display   = 'none';
-                document.getElementById('studyContainer').style.display  = 'block';
-                studyIndex = 0;
-                loadStudyQuestion();
-            } else {
-                document.getElementById('studyContainer').style.display  = 'none';
-                document.getElementById('gameContainer').style.display   = 'block';
-                loadNextQuestion();
+        // Áp dụng save nếu resume
+        if (resuming && currentMode !== 'study') {
+            const save = loadSave(currentDeckKey);
+            if (save) {
+                // Khôi phục errorMap
+                errorMap = save.errorMap;
+                // Chỉ giữ lại những câu chưa hoàn thành
+                const remainSet = new Set(save.remainingQKeys);
+                activeQuestions = activeQuestions.filter(q => remainSet.has(q.q));
             }
         }
 
-        // ── Progress bar & break markers ──────────────────────────
-        function drawBreakMarkers() {
-            document.querySelectorAll('.break-marker').forEach(e => e.remove());
-            const numBreaks = Math.floor(totalWords / 15);
-            for (let i = 1; i <= numBreaks; i++) {
-                if (i * 15 >= totalWords) continue;
-                const marker = document.createElement('div');
-                marker.className  = 'break-marker';
-                marker.style.left = `${(i * 15 / totalWords) * 100}%`;
-                document.getElementById('progressBar').appendChild(marker);
-            }
-        }
+        totalWords = resuming
+            ? (loadSave(currentDeckKey)?.totalWords || activeQuestions.length)
+            : activeQuestions.length;
 
-        // ── Break / Resume logic ───────────────────────────────────
-        function checkBreak(completed, resumeCallback) {
-            if (completed % 15 === 0 && completed !== 0 && completed !== totalWords && !seenBreaks.has(completed)) {
-                seenBreaks.add(completed);
-                clearInterval(timerInterval);
-                document.getElementById('gameContainer').style.display  = 'none';
-                document.getElementById('studyContainer').style.display = 'none';
-                document.getElementById('breakScreen').style.display    = 'block';
-                window.resumeCallback = resumeCallback;
-                return true;
-            }
-            return false;
+        // Sau khi có totalWords cuối cùng, mới vẽ marker
+        if (!resuming && currentMode !== 'study') {
+            // totalWords = activeQuestions.length đã set
         }
+        drawBreakMarkers();
+        renderPresetList(); // refresh badges
 
-        function resumeAfterBreak() {
-            document.getElementById('breakScreen').style.display = 'none';
-            if (currentMode === 'study') {
-                document.getElementById('studyContainer').style.display = 'block';
-            } else {
-                document.getElementById('gameContainer').style.display = 'block';
-                if (currentMode === 'fun') startTimer();
-            }
-            if (window.resumeCallback) window.resumeCallback();
-        }
-
-        // ── Study mode ─────────────────────────────────────────────
-        function loadStudyQuestion() {
-            if (studyIndex >= totalWords) { showEndScreen(); return; }
-            document.getElementById('progressFill').style.width = `${(studyIndex / totalWords) * 100}%`;
-            const item = activeQuestions[studyIndex];
-            document.getElementById('studyQuestion').innerText = item.q;
-            document.getElementById('studyAnswer').innerText =
-                ` ${item.correct}\n\nCác lựa chọn:\n${item.choices.map((c,i)=>String.fromCharCode(65+i)+') '+c).join('\n')}`;
-            document.getElementById('prevBtn').disabled = (studyIndex === 0);
-        }
-
-        function nextStudy() {
-            studyIndex++;
-            if (checkBreak(studyIndex, loadStudyQuestion)) return;
+        if (currentMode === 'study') {
+            document.getElementById('gameContainer').style.display  = 'none';
+            document.getElementById('studyContainer').style.display = 'block';
+            studyIndex = 0;
             loadStudyQuestion();
+        } else {
+            document.getElementById('studyContainer').style.display = 'none';
+            document.getElementById('gameContainer').style.display  = 'block';
+            loadNextQuestion();
         }
+    }
 
-        function prevStudy() {
-            if (studyIndex > 0) studyIndex--;
-            loadStudyQuestion();
+    // ════════════════════════════════════════════════
+    //  PROGRESS BAR & BREAKS
+    // ════════════════════════════════════════════════
+    function drawBreakMarkers() {
+        document.querySelectorAll('.break-marker').forEach(e => e.remove());
+        const numBreaks = Math.floor(totalWords / 15);
+        for (let i = 1; i <= numBreaks; i++) {
+            if (i * 15 >= totalWords) continue;
+            const marker = document.createElement('div');
+            marker.className  = 'break-marker';
+            marker.style.left = `${(i * 15 / totalWords) * 100}%`;
+            document.getElementById('progressBar').appendChild(marker);
         }
+    }
 
-        // ── Quiz mode helpers ──────────────────────────────────────
-        function pickSmartQuestion() {
-            let totalWeight = 0;
-            const cumulativeWeights = [];
-            for (const item of activeQuestions) {
-                totalWeight += 1 + errorMap[item.q];
-                cumulativeWeights.push(totalWeight);
-            }
-            const rand = Math.random() * totalWeight;
-            for (let i = 0; i < cumulativeWeights.length; i++) {
-                if (rand < cumulativeWeights[i]) return activeQuestions[i];
-            }
-            return activeQuestions[0];
-        }
-
-        function updateProgress() {
-            const completed = totalWords - activeQuestions.length;
-            document.getElementById('progressFill').style.width = `${(completed / totalWords) * 100}%`;
-        }
-
-        // ── Timer (Fun mode) ───────────────────────────────────────
-        function startTimer() {
-            clearInterval(timerInterval);
-            if (currentMode !== 'fun') return;
-            timeLeft = 5;
-            document.getElementById('timerDisplay').innerText = `⏱️ ${timeLeft}s`;
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timerDisplay').innerText = `⏱️ ${timeLeft}s`;
-                if (timeLeft <= 0) handleTimeout();
-            }, 1000);
-        }
-
-        // ── Load question (Quiz & Fun) ─────────────────────────────
-        function loadNextQuestion() {
-            updateProgress();
-            if (activeQuestions.length === 0) { showEndScreen(); return; }
-
-            document.getElementById('idkBtn').disabled = false;
-            currentQuestion = pickSmartQuestion();
-            document.getElementById('question').innerText = currentQuestion.q;
-
-            const shuffled = [...currentQuestion.choices].sort(() => Math.random() - 0.5);
-
-            const container = document.getElementById('choices');
-            container.innerHTML = '';
-            const labels = ['A', 'B', 'C', 'D'];
-            shuffled.forEach((text, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'choice';
-                btn.innerText = `${labels[idx]}) ${text}`;
-                btn.dataset.value = text;
-                btn.onclick = () => checkAnswer(btn, text);
-                container.appendChild(btn);
-            });
-
-            startTimer();
-        }
-
-        // ── Answer logic ───────────────────────────────────────────
-        function disableAllButtons() {
-            clearInterval(timerInterval);
-            document.querySelectorAll('.choice').forEach(btn => btn.disabled = true);
-            document.getElementById('idkBtn').disabled = true;
-        }
-
-        function highlightCorrectAnswer() {
-            document.querySelectorAll('.choice').forEach(btn => {
-                if (btn.dataset.value === currentQuestion.correct) {
-                    btn.classList.add('correct');
-                }
-            });
-        }
-
-        // Sửa lỗi lặp dòng padding ở class button.choice (CSS) trong file gốc của bạn đã được dọn sạch
-        function checkAnswer(selectedBtn, selectedText) {
-            disableAllButtons();
-            if (selectedText === currentQuestion.correct) {
-                selectedBtn.classList.add('correct');
-                activeQuestions = activeQuestions.filter(item => item.q !== currentQuestion.q);
-            } else {
-                selectedBtn.classList.add('wrong');
-                highlightCorrectAnswer();
-                errorMap[currentQuestion.q]++;
-            }
-            setTimeout(() => {
-                const completed = totalWords - activeQuestions.length;
-                if (checkBreak(completed, loadNextQuestion)) return;
-                loadNextQuestion();
-            }, 1200);
-        }
-
-        function handleIdk() {
-            disableAllButtons();
-            highlightCorrectAnswer();
-            errorMap[currentQuestion.q]++;
-            setTimeout(() => { loadNextQuestion(); }, 1200);
-        }
-
-        function handleTimeout() {
-            disableAllButtons();
-            document.getElementById('timerDisplay').innerText = `⏳ Time's up!`;
-            highlightCorrectAnswer();
-            errorMap[currentQuestion.q]++;
-            setTimeout(() => { loadNextQuestion(); }, 1500);
-        }
-
-        // ── End screen ─────────────────────────────────────────────
-        function showEndScreen() {
+    function checkBreak(completed, resumeCallback) {
+        if (completed % 15 === 0 && completed !== 0 && completed !== totalWords && !seenBreaks.has(completed)) {
+            seenBreaks.add(completed);
             clearInterval(timerInterval);
             document.getElementById('gameContainer').style.display  = 'none';
             document.getElementById('studyContainer').style.display = 'none';
-            document.getElementById('endScreen').style.display      = 'block';
-            document.getElementById('progressFill').style.width     = '100%';
-
-            let totalMistakes = 0;
-            let hardestWord   = "None!";
-            let maxErrors     = 0;
-
-            for (const [word, errors] of Object.entries(errorMap)) {
-                totalMistakes += errors;
-                if (errors > maxErrors) {
-                    maxErrors   = errors;
-                    hardestWord = `${word} (${errors} mistakes)`;
-                }
-            }
-
-            document.getElementById('totalMistakes').innerText = totalMistakes;
-            document.getElementById('hardestWord').innerText   =
-                (currentMode === 'study' || totalMistakes === 0) ? "Perfect Score! 🌟" : hardestWord;
+            document.getElementById('breakScreen').style.display    = 'block';
+            window.resumeCallback = resumeCallback;
+            return true;
         }
+        return false;
+    }
+
+    function resumeAfterBreak() {
+        document.getElementById('breakScreen').style.display = 'none';
+        if (currentMode === 'study') {
+            document.getElementById('studyContainer').style.display = 'block';
+        } else {
+            document.getElementById('gameContainer').style.display = 'block';
+            if (currentMode === 'fun') startTimer();
+        }
+        if (window.resumeCallback) window.resumeCallback();
+    }
+
+    // ════════════════════════════════════════════════
+    //  STUDY MODE
+    // ════════════════════════════════════════════════
+    function loadStudyQuestion() {
+        if (studyIndex >= activeQuestions.length) { showEndScreen(); return; }
+        document.getElementById('progressFill').style.width = `${(studyIndex / activeQuestions.length) * 100}%`;
+        const item = activeQuestions[studyIndex];
+        document.getElementById('studyQuestion').innerText = item.q;
+        document.getElementById('studyAnswer').innerText =
+            ` ${item.correct}\n\nCác lựa chọn:\n${item.choices.map((c,i)=>String.fromCharCode(65+i)+') '+c).join('\n')}`;
+        document.getElementById('prevBtn').disabled = (studyIndex === 0);
+    }
+
+    function nextStudy() {
+        studyIndex++;
+        if (checkBreak(studyIndex, loadStudyQuestion)) return;
+        loadStudyQuestion();
+    }
+
+    function prevStudy() {
+        if (studyIndex > 0) studyIndex--;
+        loadStudyQuestion();
+    }
+
+    // ════════════════════════════════════════════════
+    //  QUIZ / FUN MODE
+    // ════════════════════════════════════════════════
+    function pickSmartQuestion() {
+        let totalWeight = 0;
+        const cumulativeWeights = [];
+        for (const item of activeQuestions) {
+            totalWeight += 1 + errorMap[item.q];
+            cumulativeWeights.push(totalWeight);
+        }
+        const rand = Math.random() * totalWeight;
+        for (let i = 0; i < cumulativeWeights.length; i++) {
+            if (rand < cumulativeWeights[i]) return activeQuestions[i];
+        }
+        return activeQuestions[0];
+    }
+
+    function updateProgress() {
+        const completed = totalWords - activeQuestions.length;
+        document.getElementById('progressFill').style.width = `${(completed / totalWords) * 100}%`;
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        if (currentMode !== 'fun') return;
+        timeLeft = 5;
+        document.getElementById('timerDisplay').innerText = `⏱️ ${timeLeft}s`;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timerDisplay').innerText = `⏱️ ${timeLeft}s`;
+            if (timeLeft <= 0) handleTimeout();
+        }, 1000);
+    }
+
+    function loadNextQuestion() {
+        updateProgress();
+        if (activeQuestions.length === 0) { showEndScreen(); return; }
+
+        document.getElementById('idkBtn').disabled = false;
+        currentQuestion = pickSmartQuestion();
+        document.getElementById('question').innerText = currentQuestion.q;
+
+        const shuffled = [...currentQuestion.choices].sort(() => Math.random() - 0.5);
+        const container = document.getElementById('choices');
+        container.innerHTML = '';
+        const labels = ['A','B','C','D'];
+        shuffled.forEach((text, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'choice';
+            btn.innerText = `${labels[idx]}) ${text}`;
+            btn.dataset.value = text;
+            btn.onclick = () => checkAnswer(btn, text);
+            container.appendChild(btn);
+        });
+        startTimer();
+    }
+
+    function disableAllButtons() {
+        clearInterval(timerInterval);
+        document.querySelectorAll('.choice').forEach(btn => btn.disabled = true);
+        document.getElementById('idkBtn').disabled = true;
+    }
+
+    function highlightCorrectAnswer() {
+        document.querySelectorAll('.choice').forEach(btn => {
+            if (btn.dataset.value === currentQuestion.correct) btn.classList.add('correct');
+        });
+    }
+
+    function checkAnswer(selectedBtn, selectedText) {
+        disableAllButtons();
+        if (selectedText === currentQuestion.correct) {
+            selectedBtn.classList.add('correct');
+            activeQuestions = activeQuestions.filter(item => item.q !== currentQuestion.q);
+        } else {
+            selectedBtn.classList.add('wrong');
+            highlightCorrectAnswer();
+            errorMap[currentQuestion.q]++;
+        }
+        saveProgress();  // ← ghi sau mỗi câu
+        setTimeout(() => {
+            const completed = totalWords - activeQuestions.length;
+            if (checkBreak(completed, loadNextQuestion)) return;
+            loadNextQuestion();
+        }, 1200);
+    }
+
+    function handleIdk() {
+        disableAllButtons();
+        highlightCorrectAnswer();
+        errorMap[currentQuestion.q]++;
+        saveProgress();
+        setTimeout(() => { loadNextQuestion(); }, 1200);
+    }
+
+    function handleTimeout() {
+        disableAllButtons();
+        document.getElementById('timerDisplay').innerText = `⏳ Time's up!`;
+        highlightCorrectAnswer();
+        errorMap[currentQuestion.q]++;
+        saveProgress();
+        setTimeout(() => { loadNextQuestion(); }, 1500);
+    }
+
+    // ════════════════════════════════════════════════
+    //  END SCREEN
+    // ════════════════════════════════════════════════
+    function showEndScreen() {
+        clearInterval(timerInterval);
+        document.getElementById('gameContainer').style.display  = 'none';
+        document.getElementById('studyContainer').style.display = 'none';
+        document.getElementById('endScreen').style.display      = 'block';
+        document.getElementById('progressFill').style.width     = '100%';
+
+        // Xóa save khi hoàn thành
+        if (currentDeckKey) clearSave(currentDeckKey);
+
+        let totalMistakes = 0, hardestWord = "None!", maxErrors = 0;
+        for (const [word, errors] of Object.entries(errorMap)) {
+            totalMistakes += errors;
+            if (errors > maxErrors) { maxErrors = errors; hardestWord = `${word} (${errors} mistakes)`; }
+        }
+        document.getElementById('totalMistakes').innerText = totalMistakes;
+        document.getElementById('hardestWord').innerText   =
+            (currentMode === 'study' || totalMistakes === 0) ? "Perfect Score! 🌟" : hardestWord;
+    }
+
+    // ── Init preset list on load ──────────────────
+    renderPresetList();
     </script>
 </body>
 </html>
