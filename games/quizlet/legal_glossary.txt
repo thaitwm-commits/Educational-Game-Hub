@@ -1,57 +1,57 @@
+bại bỏ (luật)
 abolish (a law) (v)
-bãi bỏ (luật)
-amend (v)
 sửa đổi (luật)
-appoint (sb as … ) (v)
+amend (v)
 bổ nhiệm
+appoint (sb as ) (v)
+duyệt, phê chuẩn
 approve (v)
-phê duyệt, phê chuẩn
-dismiss (sb from … ) (v)
 cách chức
-effect (n)
+dismiss (sb from ) (v)
 hiệu lực thi hành
-exercise (a right) (v)
+effect (n)
 thực hiện (quyền)
+exercise (a right) (v)
+thanh tra
 inspector (n)
 thanh tra
 inspectorate (n)
-thanh tra
-minister (n)
 bộ trưởng
-deputy minister (n)
+minister (n)
 thứ trưởng
-national assembly (n)
+deputy minister (n)
 quốc hội
-people's committee (n)
+national assembly (n)
 ủy ban nhân dân
-people's council (n)
+people's committee (n)
 hội đồng nhân dân
-policy (n)
+people's council (n)
 chính sách
-prime minister (n)
+policy (n)
 thủ tướng
-deputy prime minister (n)
+prime minister (n)
 phó thủ tướng
-scope of regulation (n)
+deputy prime minister (n)
 phạm vi điều chỉnh
-standing committee (n)
+scope of regulation (n)
 ban / ủy ban thường vụ
-stipulate (v)
+standing committee (n)
 quy định
-subject of application (n)
+stipulate (v)
 đối tượng áp dụng
-transitional provision (n)
+subject of application (n)
 điều khoản chuyển tiếp
-voting rights (n)
+transitional provision (n)
 quyền bầu cử
-chánh / phó chánh văn phòng … (dt)
-chief / deputy chief of the … office
+voting rights (n)
+chánh / phó chánh văn phòng ... (dt)
+chief / deputy chief of the... office
 chỉ thị (dt)
 directive
 chủ nhiệm – phó chủ nhiệm (của một ủy ban / văn phòng) (dt)
-chair(wo)man – vice chair(wo)man (of a committee / an office)
+chair(wo)man - vice chair(wo)man (of a committee / an office)
 chủ tịch – phó chủ tịch (của một viện) (dt)
-president – vice president (of an institute)
+president - vice president (of an institute)
 chương (dt)
 chapter
 công ước (dt)
@@ -98,78 +98,78 @@ tuyên bố (đt)
 (to) declare
 CHXHCN Việt Nam
 The Socialist Republic of Vietnam
-accomplice (n)
 đồng phạm
-ad damnum (n)
+accomplice (n)
 mục kê khai thiệt hại
-affidavit (n)
+ad damnum (n)
 tờ khai có tuyên thệ
-allegation / averment (n)
+affidavit (n)
 lời cáo buộc
-appear in court (v)
+allegation / averment (n)
 hầu tòa
+appear in court (v)
+kê biên, phong tòa tài sản
 attach (v)
-kê biên, phong tỏa tài sản
-breach of contract (n)
 việc vi phạm hợp đồng
-cause of action (n)
+breach of contract (n)
 căn cứ / lí do khởi kiện, cơ sở pháp lý của vụ kiện
-complainant (n)
+cause of action (n)
 người khiếu nại, người tố cáo, người thưa kiện
-conduct a case (v)
+complainant (n)
 tiến hành xét xử, xử lý một vụ án
-conspiracy (n)
+conduct a case (v)
 âm mưu
-counterclaim (n)
+conspiracy (n)
 phản tố
-docket number (n)
+counterclaim (n)
 mã số vụ án
-felony (n)
+docket number (n)
 trọng tội
-hearing (n)
+felony (n)
 phiên điều trần, phiên tòa, phiên làm việc
-indictment (n)
+hearing (n)
 bản cáo trạng
-jurisdiction (n)
+indictment (n)
 thẩm quyền xét xử
-juror (n)
+jurisdiction (n)
 thành viên bồi thẩm đoàn
-jury (n)
+juror (n)
 bồi thẩm đoàn
-justice of the peace (n)
+jury (n)
 thẩm phán hòa giải
-lawsuit (n)
+justice of the peace (n)
 vụ kiện
-legal counsel (n)
+lawsuit (n)
 cố vấn pháp lý
-litigant (n)
+legal counsel (n)
 đương sự
-litigation (n)
+litigant (n)
 việc kiện tụng, phương thức giải quyết tranh chấp bằng tòa án
-mediation (n)
+litigation (n)
 sự hòa giải
+mediation (n)
+thoả thuận bảo mật, thoả thuận không tiết lộ thông tin
 non-disclosure agreement (NDA) (n)
-thỏa thuận bảo mật, thỏa thuận không tiết lộ thông tin
-People's Court (n)
 Tòa án Nhân dân
-People's Procuracy (n)
+People's Court (n)
 Viện Kiểm sát Nhân dân
-perpetrator (n)
+People's Procuracy (n)
 người thực hiện hành vi phạm tội
+perpetrator (n)
+đơn (yêu cầu, kiến nghị, khởi kiện, ...)
 petition (n)
-đơn (yêu cầu, kiến nghị, khởi kiện, …)
-pleadings (n)
 văn bản tố tụng
-prosecutor (n)
+pleadings (n)
 công tố viên / kiểm sát viên
-service of process (n)
+prosecutor (n)
 tống đạt (văn bản của tòa)
-summons (n)
+service of process (n)
 giấy triệu tập
-take sb to court (v)
+summons (n)
 kiện (ai đó)
-trial docket (n)
+take sb to court (v)
 lịch xét xử của tòa án
+trial docket (n)
 bị cáo (dt)
 defendant
 bị đơn (dt)
@@ -183,15 +183,15 @@ chief justice
 chứng cứ ngoại phạm (dt)
 alibi
 giấy ủy quyền (dt)
-authorization letter / letter of authorization / power of attorney (POA)
+authorization letter
 hợp đồng ủy quyền (dt)
-authorization letter / letter of authorization / power of attorney (POA)
+letter of authorization power of attorney (POA)
 luật dân sự (dt)
 civil law
 luật hình sự (dt)
 criminal law
 luật sư (dt)
-attorney / lawyer / barrister / solicitor
+attorney / lawyer barrister solicitor
 nhân chứng (dt)
 witness
 nghi phạm (dt)
@@ -208,7 +208,7 @@ tòa sơ thẩm (dt)
 court of first instance / trial court
 tòa phúc thẩm (dt)
 court of appeal / appellate court
-(thủ tục) giám đốc thẩm – tái thẩm (dt)
-cassation appeal – retrial appeal
+(thủ tục) giám đốc thẩm tái thẩm (dt)
+cassation appeal - retrial appeal
 trát / lệnh (của tòa án) (dt)
 writ
