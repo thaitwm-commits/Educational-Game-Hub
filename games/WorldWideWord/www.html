@@ -408,7 +408,7 @@ input[type="file"] { display: none; }
 
     <div class="file-picker-area">
         <button class="toggle-preset-btn" onclick="togglePresetList()" id="togglePresetBtn">
-            📂 Choose Saved Deck ▾
+             Choose Saved Deck ▾
         </button>
         <div id="presetDeckList"></div>
         <label class="upload-btn">
@@ -523,11 +523,11 @@ function togglePresetList() {
     const btn = document.getElementById('togglePresetBtn');
     if (list.classList.contains('open')) {
         list.classList.remove('open');
-        btn.textContent = '📂 Choose Saved Deck ▾';
+        btn.textContent = ' Choose Saved Deck ▾';
     } else {
         renderPresetList();
         list.classList.add('open');
-        btn.textContent = '📂 Choose Saved Deck ▲';
+        btn.textContent = ' Choose Saved Deck ▲';
     }
 }
 
