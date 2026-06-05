@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flashcard — Type Mode</title>
+<title>Flashcard Type Mode</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -217,6 +217,19 @@ input[type="file"] { display: none; }
     font-variant-numeric: tabular-nums;
 }
 
+.stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.5);
+}
+.stats-row span { display: flex; align-items: center; gap: 5px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.dot-green { background: #6aaa64; }
+.dot-red   { background: #e95d5d; }
+.dot-gray  { background: rgba(255,255,255,0.3); }
 
 #question {
     font-size: clamp(1.1rem, 3vw, 1.5rem);
@@ -421,7 +434,12 @@ input[type="file"] { display: none; }
 <div class="card" id="gameCard">
 
     <div id="typeContainer">
-       
+        <div class="stats-row">
+            <span><span class="dot dot-green"></span><span id="statCorrect">0</span> correct</span>
+            <span><span class="dot dot-red"></span><span id="statWrong">0</span> wrong</span>
+            <span><span class="dot dot-gray"></span><span id="statRemain">0</span> left</span>
+        </div>
+
         <div id="cardIndex">01 / 00</div>
         <div id="question">—</div>
 
@@ -468,7 +486,7 @@ input[type="file"] { display: none; }
 //  { name: "Display Name", file: "filename.txt", desc: "description" }
 // ============================================================
 const PRESET_DECKS = [
-    { name: "Legal Glossary", file: "legal_glossary.txt", desc: "legal bbtc" },
+    { name: "Legal Glossary", file: "legal_glossary.txt", desc: "Legal terms & definitions" },
 ];
 // ============================================================
 
@@ -753,10 +771,6 @@ function showCard() {
     document.getElementById('cardIndex').textContent =
         String(idx).padStart(2,'0') + ' / ' + String(totalWords).padStart(2,'0');
     document.getElementById('question').textContent = currentCard.q;
-    document.getElementById('statCorrect').textContent = correct;
-    document.getElementById('statWrong').textContent = wrongCount;
-    document.getElementById('statRemain').textContent = activeQuestions.length;
-
     updateProgress();
     inp.focus();
 }
@@ -791,8 +805,6 @@ function submitAnswer() {
         document.getElementById('wrongBtn').style.display = 'none';
     }
     document.getElementById('actionRow').className = 'visible';
-    document.getElementById('statCorrect').textContent = correct;
-    document.getElementById('statWrong').textContent = wrongCount;
     autoSave();
 }
 
@@ -811,7 +823,6 @@ function dontKnow() {
     fb.innerHTML = 'Answer: <strong>' + escHtml(currentCard.a) + '</strong>';
     document.getElementById('actionRow').className = 'visible';
     document.getElementById('wrongBtn').style.display = 'none';
-    document.getElementById('statWrong').textContent = wrongCount;
     autoSave();
 }
 
@@ -828,6 +839,9 @@ function markWrong() {
     fb.className = 'wrong';
     fb.innerHTML = '✗ Marked wrong. Answer: <strong>' + escHtml(currentCard.a) + '</strong>';
     document.getElementById('wrongBtn').style.display = 'none';
+    document.getElementById('statCorrect').textContent = correct;
+    document.getElementById('statWrong').textContent = wrongCount;
+    document.getElementById('statRemain').textContent = activeQuestions.length;
     autoSave();
 }
 
