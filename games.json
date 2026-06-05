@@ -39,6 +39,11 @@
     "description": "A simple learning module, best for vocabulary",
     "path": "games/quizlet/quizlet.html"
   },
+   {
+    "title": "World Wide Word",
+    "description": "A simple learning module, best for written vocab",
+    "path": "games/WorldWideWord/www.html"
+  },
   {
     "title": "Compiler: NOT A GAME",
     "description": "I'm too lazy to go home to compile so here hj",
