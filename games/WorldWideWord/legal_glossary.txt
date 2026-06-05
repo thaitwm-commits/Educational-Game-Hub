@@ -1,0 +1,214 @@
+bại bỏ (luật)
+abolish (a law) (v)
+sửa đổi (luật)
+amend (v)
+bổ nhiệm
+appoint (sb as ) (v)
+duyệt, phê chuẩn
+approve (v)
+cách chức
+dismiss (sb from ) (v)
+hiệu lực thi hành
+effect (n)
+thực hiện (quyền)
+exercise (a right) (v)
+thanh tra
+inspector (n)
+thanh tra
+inspectorate (n)
+bộ trưởng
+minister (n)
+thứ trưởng
+deputy minister (n)
+quốc hội
+national assembly (n)
+ủy ban nhân dân
+people's committee (n)
+hội đồng nhân dân
+people's council (n)
+chính sách
+policy (n)
+thủ tướng
+prime minister (n)
+phó thủ tướng
+deputy prime minister (n)
+phạm vi điều chỉnh
+scope of regulation (n)
+ban / ủy ban thường vụ
+standing committee (n)
+quy định
+stipulate (v)
+đối tượng áp dụng
+subject of application (n)
+điều khoản chuyển tiếp
+transitional provision (n)
+quyền bầu cử
+voting rights (n)
+chánh / phó chánh văn phòng ... (dt)
+chief / deputy chief of the... office
+chỉ thị (dt)
+directive
+chủ nhiệm – phó chủ nhiệm (của một ủy ban / văn phòng) (dt)
+chair(wo)man - vice chair(wo)man (of a committee / an office)
+chủ tịch – phó chủ tịch (của một viện) (dt)
+president - vice president (of an institute)
+chương (dt)
+chapter
+công ước (dt)
+convention
+dự thảo (dt)
+bill
+điểm (dt)
+point
+điều (dt)
+article
+đơn vị hành chính (dt)
+administrative unit
+giám sát (đt)
+(to) supervise
+hiến pháp (dt)
+constitution
+khoản (dt)
+clause
+mục (dt)
+section
+nghị định (dt)
+decree
+nghị quyết (dt)
+resolution
+pháp lệnh (dt)
+ordinance
+phụ lục (dt)
+appendix
+quyết định (dt)
+decision
+thông tư (dt)
+circular
+thông tư liên tịch (dt)
+joint circular
+(thuộc về) hành pháp (tt)
+executive
+(thuộc về) lập pháp (tt)
+legislative
+(thuộc về) tư pháp (tt)
+judicial
+trung ương (tt)
+central
+tuyên bố (đt)
+(to) declare
+CHXHCN Việt Nam
+The Socialist Republic of Vietnam
+đồng phạm
+accomplice (n)
+mục kê khai thiệt hại
+ad damnum (n)
+tờ khai có tuyên thệ
+affidavit (n)
+lời cáo buộc
+allegation / averment (n)
+hầu tòa
+appear in court (v)
+kê biên, phong tòa tài sản
+attach (v)
+việc vi phạm hợp đồng
+breach of contract (n)
+căn cứ / lí do khởi kiện, cơ sở pháp lý của vụ kiện
+cause of action (n)
+người khiếu nại, người tố cáo, người thưa kiện
+complainant (n)
+tiến hành xét xử, xử lý một vụ án
+conduct a case (v)
+âm mưu
+conspiracy (n)
+phản tố
+counterclaim (n)
+mã số vụ án
+docket number (n)
+trọng tội
+felony (n)
+phiên điều trần, phiên tòa, phiên làm việc
+hearing (n)
+bản cáo trạng
+indictment (n)
+thẩm quyền xét xử
+jurisdiction (n)
+thành viên bồi thẩm đoàn
+juror (n)
+bồi thẩm đoàn
+jury (n)
+thẩm phán hòa giải
+justice of the peace (n)
+vụ kiện
+lawsuit (n)
+cố vấn pháp lý
+legal counsel (n)
+đương sự
+litigant (n)
+việc kiện tụng, phương thức giải quyết tranh chấp bằng tòa án
+litigation (n)
+sự hòa giải
+mediation (n)
+thoả thuận bảo mật, thoả thuận không tiết lộ thông tin
+non-disclosure agreement (NDA) (n)
+Tòa án Nhân dân
+People's Court (n)
+Viện Kiểm sát Nhân dân
+People's Procuracy (n)
+người thực hiện hành vi phạm tội
+perpetrator (n)
+đơn (yêu cầu, kiến nghị, khởi kiện, ...)
+petition (n)
+văn bản tố tụng
+pleadings (n)
+công tố viên / kiểm sát viên
+prosecutor (n)
+tống đạt (văn bản của tòa)
+service of process (n)
+giấy triệu tập
+summons (n)
+kiện (ai đó)
+take sb to court (v)
+lịch xét xử của tòa án
+trial docket (n)
+bị cáo (dt)
+defendant
+bị đơn (dt)
+defendant
+bị cáo buộc (đt)
+(to) be accused of
+bị kết án (đt)
+(to) be convicted of
+chánh án (dt)
+chief justice
+chứng cứ ngoại phạm (dt)
+alibi
+giấy ủy quyền (dt)
+authorization letter
+hợp đồng ủy quyền (dt)
+letter of authorization power of attorney (POA)
+luật dân sự (dt)
+civil law
+luật hình sự (dt)
+criminal law
+luật sư (dt)
+attorney / lawyer barrister solicitor
+nhân chứng (dt)
+witness
+nghi phạm (dt)
+suspect
+nguyên đơn (dt)
+plaintiff
+thẩm phán (dt)
+judge / justice
+thư ký tòa án (dt)
+court clerk
+thừa phát lại (dt)
+process server
+tòa sơ thẩm (dt)
+court of first instance / trial court
+tòa phúc thẩm (dt)
+court of appeal / appellate court
+(thủ tục) giám đốc thẩm tái thẩm (dt)
+cassation appeal - retrial appeal
+trát / lệnh (của tòa án) (dt)
+writ

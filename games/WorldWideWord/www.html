@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcard — Type Mode</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-image: url('https://www.thisiscolossal.com/wp-content/uploads/2026/03/waider-1.gif');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: -1;
+}
+
+#cornerBtns {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 100;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+#bgToggle {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    backdrop-filter: blur(6px);
+}
+#bgToggle:hover { background: rgba(0,0,0,0.6); }
+
+#progressBar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 8px;
+    background: rgba(0,0,0,0.4);
+    z-index: 10;
+    display: none;
+}
+#progressFill {
+    height: 100%; width: 0%;
+    background: #6aaa64;
+    transition: width 0.3s ease;
+}
+.break-marker {
+    position: absolute;
+    top: 0; height: 100%; width: 4px;
+    background: #ffca28;
+    z-index: 11;
+    transform: translateX(-50%);
+}
+
+.card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    width: 95%;
+    max-width: 640px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* ---- START SCREEN ---- */
+#startScreen h1 {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+    margin-bottom: 1rem;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+}
+#startScreen p { margin-bottom: 1.5rem; color: #eee; }
+
+.file-picker-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-btn {
+    display: inline-block;
+    background: rgba(106,170,100,0.8);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+.upload-btn:hover {
+    background: rgba(106,170,100,1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(106,170,100,0.4);
+}
+input[type="file"] { display: none; }
+
+/* Preset list */
+#presetDeckList {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 4px 2px;
+}
+#presetDeckList.open { display: flex; }
+
+.deck-item {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: background 0.18s;
+}
+.deck-item:hover { background: rgba(255,255,255,0.16); }
+.deck-item-info { text-align: left; flex: 1; }
+.deck-item-name { font-weight: 700; font-size: 1rem; }
+.deck-item-meta { font-size: 0.78rem; color: #aed6f1; margin-top: 2px; }
+.deck-item-progress { font-size: 0.75rem; color: #6aaa64; font-weight: bold; white-space: nowrap; }
+.deck-item-progress.no-save { color: #888; }
+
+.deck-load-btn {
+    background: rgba(106,170,100,0.75);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+.deck-load-btn:hover { background: rgba(106,170,100,1); }
+
+.deck-clear-btn {
+    background: rgba(233,93,93,0.5);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+.deck-clear-btn:hover { background: rgba(233,93,93,0.85); }
+
+.toggle-preset-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px dashed rgba(255,255,255,0.35);
+    border-radius: 12px;
+    padding: 0.85rem 2rem;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.toggle-preset-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* ---- SAVE BANNER ---- */
+#saveBanner {
+    position: fixed;
+    bottom: 16px; right: 16px;
+    background: rgba(106,170,100,0.9);
+    color: white;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    display: none;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: fadeInUp 0.3s ease;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- GAME CARD ---- */
+#gameCard { display: none; }
+#breakScreen { display: none; }
+#endScreen { display: none; }
+#typeContainer { display: none; }
+
+#cardIndex {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+
+#question {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+    line-height: 1.4;
+}
+
+/* Answer input row */
+.answer-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+#answerInput {
+    flex: 1;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    color: white;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    caret-color: #ffca28;
+}
+#answerInput::placeholder { color: rgba(255,255,255,0.35); }
+#answerInput:focus { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.18); }
+#answerInput.correct { border-color: #6aaa64; background: rgba(106,170,100,0.18); }
+#answerInput.wrong   { border-color: #e95d5d; background: rgba(233,93,93,0.18); }
+
+#submitBtn {
+    padding: 0.75rem 1.25rem;
+    background: rgba(106,170,100,0.8);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+#submitBtn:hover { background: rgba(106,170,100,1); transform: translateY(-1px); }
+
+/* IDK / secondary buttons */
+#idkBtn {
+    width: 100%;
+    margin-bottom: 1rem;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+#idkBtn:hover:not(:disabled) { background: rgba(0,0,0,0.5); }
+#idkBtn:disabled { opacity: 0.4; cursor: default; }
+#idkBtn img { width: 20px; height: 20px; filter: invert(1); }
+
+/* Feedback box */
+#feedback {
+    display: none;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-align: left;
+}
+#feedback.correct {
+    display: block;
+    background: rgba(106,170,100,0.18);
+    border: 1px solid #6aaa64;
+    color: #a8e0a0;
+}
+#feedback.wrong {
+    display: block;
+    background: rgba(233,93,93,0.18);
+    border: 1px solid #e95d5d;
+    color: #f0a0a0;
+}
+#feedback.reveal {
+    display: block;
+    background: rgba(255,202,40,0.1);
+    border: 1px solid rgba(255,202,40,0.4);
+    color: #ffe083;
+}
+#feedback strong {
+    color: #fff;
+    font-family: monospace;
+    font-size: 1.05rem;
+}
+
+/* Action row after answer */
+#actionRow {
+    display: none;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+#actionRow.visible { display: flex; }
+
+#nextBtn {
+    padding: 0.7rem 1.75rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+#nextBtn:hover { background: rgba(255,255,255,0.25); transform: translateY(-1px); }
+
+#wrongBtn {
+    padding: 0.7rem 1.25rem;
+    background: rgba(233,93,93,0.2);
+    border: 1px solid #e95d5d;
+    border-radius: 12px;
+    color: #f0a0a0;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+#wrongBtn:hover { background: rgba(233,93,93,0.35); }
+
+/* Break screen */
+#breakScreen { text-align: center; }
+#breakScreen h2 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: #ffca28;
+    margin-bottom: 2rem;
+}
+
+/* End screen */
+#endScreen h1 {
+    font-size: clamp(2rem, 6vw, 3rem);
+    margin-bottom: 1rem;
+    color: #6aaa64;
+}
+.stat-box {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.stat-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #ccc; }
+.stat-value { font-size: 1.5rem; font-weight: bold; margin-top: 0.5rem; }
+.restart-btn {
+    margin-top: 1.5rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 0.9rem 2rem;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.restart-btn:hover { background: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+
+<div id="cornerBtns">
+    <button id="bgToggle" onclick="toggleBg()">BG:ON</button>
+</div>
+
+<div class="overlay"></div>
+<div id="progressBar"><div id="progressFill"></div></div>
+<div id="saveBanner">✓ Progress saved</div>
+
+<!-- ========== START SCREEN ========== -->
+<div class="card" id="startScreen">
+    <h1>Flashcard — Type Mode</h1>
+    <p style="color:#eee;margin-bottom:1.5rem;">Type the answer, press Enter or Check.</p>
+
+    <div class="file-picker-area">
+        <button class="toggle-preset-btn" onclick="togglePresetList()" id="togglePresetBtn">
+            📂 Choose Saved Deck ▾
+        </button>
+        <div id="presetDeckList"></div>
+        <label class="upload-btn">
+            ⬆ Upload .txt File
+            <input type="file" id="fileInput" accept=".txt">
+        </label>
+    </div>
+</div>
+
+<!-- ========== GAME CARD ========== -->
+<div class="card" id="gameCard">
+
+    <div id="typeContainer">
+       
+        <div id="cardIndex">01 / 00</div>
+        <div id="question">—</div>
+
+        <div class="answer-row">
+            <input type="text" id="answerInput" placeholder="Type your answer..." autocomplete="off" spellcheck="false">
+            <button id="submitBtn" onclick="submitAnswer()">Check</button>
+        </div>
+
+        <button id="idkBtn" onclick="dontKnow()">
+            <img src="https://cdn-icons-png.flaticon.com/128/19025/19025442.png" alt="IDK">
+            I Don't Know
+        </button>
+
+        <div id="feedback"></div>
+
+        <div id="actionRow">
+            <button id="nextBtn" onclick="nextCard()">Next →</button>
+            <button id="wrongBtn" onclick="markWrong()">I was wrong</button>
+        </div>
+    </div>
+
+    <div id="breakScreen">
+        <h2>Break time!</h2>
+        <button class="upload-btn" onclick="resumeAfterBreak()">Are you ready?</button>
+    </div>
+
+    <div id="endScreen">
+        <h1>🎉 Completed!</h1>
+        <div class="stat-box">
+            <div class="stat-label">Total Mistakes</div>
+            <div class="stat-value" id="totalMistakes">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Hardest Word</div>
+            <div class="stat-value" id="hardestWord">-</div>
+        </div>
+        <button class="restart-btn" onclick="goBackToStart()">↩ Back to Menu</button>
+    </div>
+</div>
+
+<script>
+// ============================================================
+//  PRESET DECKS — add entries here
+//  { name: "Display Name", file: "filename.txt", desc: "description" }
+// ============================================================
+const PRESET_DECKS = [
+    { name: "Legal Glossary", file: "legal_glossary.txt", desc: "legal bbtc" },
+];
+// ============================================================
+
+// ---- BG toggle ----
+function toggleBg() {
+    const btn = document.getElementById('bgToggle');
+    const isOn = document.body.style.backgroundImage !== 'none';
+    if (isOn) {
+        document.body.style.backgroundImage = 'none';
+        document.body.style.backgroundColor = '#1a1a2e';
+        btn.textContent = 'BG:OFF';
+    } else {
+        document.body.style.backgroundImage = "url('https://www.thisiscolossal.com/wp-content/uploads/2026/03/waider-1.gif')";
+        document.body.style.backgroundColor = '';
+        btn.textContent = 'BG:ON';
+    }
+}
+
+// ---- LocalStorage ----
+function getSaveKey(f) { return 'fc_type_save_' + f; }
+function loadSave(f) { try { return JSON.parse(localStorage.getItem(getSaveKey(f))); } catch { return null; } }
+function writeSave(f, d) { localStorage.setItem(getSaveKey(f), JSON.stringify(d)); }
+function clearSave(f) { localStorage.removeItem(getSaveKey(f)); }
+
+let saveBannerTimer = null;
+function flashSaveBanner() {
+    const b = document.getElementById('saveBanner');
+    b.style.display = 'block';
+    clearTimeout(saveBannerTimer);
+    saveBannerTimer = setTimeout(() => { b.style.display = 'none'; }, 1800);
+}
+
+function autoSave() {
+    if (!currentDeckFile) return;
+    writeSave(currentDeckFile, {
+        deckFile: currentDeckFile,
+        activeQuestions: activeQuestions,
+        errorMap: errorMap,
+        totalWords: totalWords,
+        seenBreaks: [...seenBreaks],
+        ts: Date.now()
+    });
+    flashSaveBanner();
+}
+
+// ---- Preset list ----
+function togglePresetList() {
+    const list = document.getElementById('presetDeckList');
+    const btn = document.getElementById('togglePresetBtn');
+    if (list.classList.contains('open')) {
+        list.classList.remove('open');
+        btn.textContent = '📂 Choose Saved Deck ▾';
+    } else {
+        renderPresetList();
+        list.classList.add('open');
+        btn.textContent = '📂 Choose Saved Deck ▲';
+    }
+}
+
+function renderPresetList() {
+    const list = document.getElementById('presetDeckList');
+    list.innerHTML = '';
+    if (PRESET_DECKS.length === 0) {
+        list.innerHTML = '<div style="color:#aaa;padding:0.5rem;">No preset decks configured.</div>';
+        return;
+    }
+    PRESET_DECKS.forEach(deck => {
+        const save = loadSave(deck.file);
+        let progressText = 'No save', progressClass = 'no-save';
+        if (save) {
+            const done = save.totalWords - (save.activeQuestions ? save.activeQuestions.length : 0);
+            const pct = Math.round((done / save.totalWords) * 100);
+            progressText = pct + '% done · saved ' + new Date(save.ts).toLocaleDateString('en-GB');
+            progressClass = '';
+        }
+        const item = document.createElement('div');
+        item.className = 'deck-item';
+        item.innerHTML =
+            '<div class="deck-item-info">' +
+                '<div class="deck-item-name">📄 ' + deck.name + '</div>' +
+                '<div class="deck-item-meta">' + (deck.desc || deck.file) + '</div>' +
+                '<div class="deck-item-progress ' + progressClass + '">' + progressText + '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px;align-items:center;">' +
+                (save ? '<button class="deck-clear-btn" onclick="handleClearSave(\'' + deck.file + '\')">🗑 Reset</button>' : '') +
+                '<button class="deck-load-btn" onclick="loadPresetDeck(\'' + deck.file + '\',' + (save ? 'true' : 'false') + ')">' +
+                    (save ? '▶ Resume' : '▶ Start') +
+                '</button>' +
+            '</div>';
+        list.appendChild(item);
+    });
+}
+
+function handleClearSave(filename) {
+    if (confirm('Clear saved progress for this deck?')) { clearSave(filename); renderPresetList(); }
+}
+
+async function loadPresetDeck(filename, hasSave) {
+    try {
+        const resp = await fetch(filename);
+        if (!resp.ok) throw new Error('File not found');
+        const text = await resp.text();
+        startGame(text, filename, hasSave ? loadSave(filename) : null);
+    } catch (e) {
+        alert('Could not load "' + filename + '".\n' + e.message);
+    }
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => startGame(ev.target.result, file.name, null);
+    reader.readAsText(file);
+});
+
+// ---- Game state ----
+let allCards = [];
+let activeQuestions = [];
+let errorMap = {};
+let currentCard = null;
+let totalWords = 0;
+let seenBreaks = new Set();
+let currentDeckFile = null;
+let answered = false;
+let lastWasCorrect = false;
+let correct = 0;
+let wrongCount = 0;
+
+// ---- Parse ----
+function parseCards(text) {
+    const raw = text.split(/\r?\n/).map(l => l.trimEnd());
+    let start = 0, end = raw.length - 1;
+    while (start <= end && raw[start].trim() === '') start++;
+    while (end >= start && raw[end].trim() === '') end--;
+    const lines = raw.slice(start, end + 1);
+    const parsed = [];
+    let i = 0;
+    while (i < lines.length) {
+        if (lines[i].trim() === '') { i++; continue; }
+        const q = lines[i].trim();
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim() === '') j++;
+        if (j < lines.length) { parsed.push({ q, a: lines[j].trim() }); i = j + 1; }
+        else break;
+    }
+    return parsed;
+}
+
+// ---- Fuzzy match ----
+function normalize(s) {
+    return s.toLowerCase().replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+function coreTokens(s) {
+    return normalize(s.replace(/\([^)]*\)/g,' ').replace(/\[[^\]]*\]/g,' ')).split(' ').filter(Boolean);
+}
+function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({length: m+1}, (_,i) => [i, ...Array(n).fill(0)]);
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+            dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    return dp[m][n];
+}
+function fuzzyMatch(input, answer) {
+    const normInput = normalize(input);
+    const tokens = coreTokens(answer);
+    if (tokens.length === 1) {
+        const d = levenshtein(normInput, tokens[0]);
+        return d <= (tokens[0].length <= 4 ? 0 : tokens[0].length <= 7 ? 1 : 2);
+    }
+    const fullNorm = normalize(answer.replace(/\([^)]*\)/g,'').replace(/\[[^\]]*\]/g,''));
+    if (normInput === fullNorm) return true;
+    const d = levenshtein(normInput, fullNorm);
+    if (d <= Math.max(2, Math.floor(fullNorm.length * 0.1))) return true;
+    const inputToks = normInput.split(' ').filter(Boolean);
+    if (inputToks.length > 0 && inputToks.every(it => tokens.some(at => levenshtein(it,at) <= (at.length<=4?0:1)))) return true;
+    return false;
+}
+
+// ---- Weighted pick (re-ask wrong cards more) ----
+function pickWeightedQuestion() {
+    let totalW = 0;
+    const weights = activeQuestions.map(q => { const w = 1 + (errorMap[q.q] || 0); totalW += w; return w; });
+    let r = Math.random() * totalW;
+    for (let i = 0; i < weights.length; i++) { r -= weights[i]; if (r < 0) return activeQuestions[i]; }
+    return activeQuestions[0];
+}
+
+// ---- Progress bar & break markers ----
+function drawBreakMarkers() {
+    document.querySelectorAll('.break-marker').forEach(e => e.remove());
+    const numBreaks = Math.floor(totalWords / 15);
+    for (let i = 1; i <= numBreaks; i++) {
+        if (i * 15 >= totalWords) continue;
+        const m = document.createElement('div');
+        m.className = 'break-marker';
+        m.style.left = (i * 15 / totalWords * 100) + '%';
+        document.getElementById('progressBar').appendChild(m);
+    }
+}
+
+function updateProgress() {
+    const done = totalWords - activeQuestions.length;
+    document.getElementById('progressFill').style.width = (done / totalWords * 100) + '%';
+}
+
+function checkBreak(done, resumeCallback) {
+    if (done % 15 === 0 && done !== 0 && done !== totalWords && !seenBreaks.has(done)) {
+        seenBreaks.add(done);
+        document.getElementById('typeContainer').style.display = 'none';
+        document.getElementById('breakScreen').style.display = 'block';
+        window._resumeCallback = resumeCallback;
+        autoSave();
+        return true;
+    }
+    return false;
+}
+
+function resumeAfterBreak() {
+    document.getElementById('breakScreen').style.display = 'none';
+    document.getElementById('typeContainer').style.display = 'block';
+    if (window._resumeCallback) window._resumeCallback();
+}
+
+// ---- Start game ----
+function startGame(rawData, filename, savedState) {
+    currentDeckFile = filename;
+    allCards = parseCards(rawData);
+    errorMap = {};
+    correct = 0; wrongCount = 0;
+
+    if (allCards.length === 0) { alert('File empty or formatting incorrect.'); return; }
+
+    allCards.forEach(c => { errorMap[c.q] = 0; });
+
+    if (savedState && savedState.activeQuestions && savedState.activeQuestions.length > 0) {
+        activeQuestions = savedState.activeQuestions;
+        errorMap = savedState.errorMap || errorMap;
+        totalWords = savedState.totalWords || allCards.length;
+        seenBreaks = new Set(savedState.seenBreaks || []);
+        // Recompute correct/wrong from errorMap
+        correct = 0; wrongCount = 0;
+        for (const v of Object.values(errorMap)) wrongCount += v;
+    } else {
+        activeQuestions = [...allCards];
+        totalWords = allCards.length;
+        seenBreaks.clear();
+    }
+
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameCard').style.display = 'block';
+    document.getElementById('progressBar').style.display = 'block';
+    document.getElementById('typeContainer').style.display = 'block';
+    document.getElementById('breakScreen').style.display = 'none';
+    document.getElementById('endScreen').style.display = 'none';
+
+    drawBreakMarkers();
+    showCard();
+}
+
+function showCard() {
+    if (activeQuestions.length === 0) { showEndScreen(); return; }
+
+    answered = false;
+    lastWasCorrect = false;
+
+    const inp = document.getElementById('answerInput');
+    inp.value = '';
+    inp.className = '';
+    inp.disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('idkBtn').disabled = false;
+    document.getElementById('feedback').className = '';
+    document.getElementById('feedback').innerHTML = '';
+    document.getElementById('actionRow').className = '';
+
+    currentCard = pickWeightedQuestion();
+
+    const idx = totalWords - activeQuestions.length + 1;
+    document.getElementById('cardIndex').textContent =
+        String(idx).padStart(2,'0') + ' / ' + String(totalWords).padStart(2,'0');
+    document.getElementById('question').textContent = currentCard.q;
+    document.getElementById('statCorrect').textContent = correct;
+    document.getElementById('statWrong').textContent = wrongCount;
+    document.getElementById('statRemain').textContent = activeQuestions.length;
+
+    updateProgress();
+    inp.focus();
+}
+
+function submitAnswer() {
+    if (answered) { nextCard(); return; }
+    const val = document.getElementById('answerInput').value.trim();
+    if (!val) return;
+
+    const inp = document.getElementById('answerInput');
+    const isCorrect = fuzzyMatch(val, currentCard.a);
+    answered = true;
+    lastWasCorrect = isCorrect;
+    inp.disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('idkBtn').disabled = true;
+
+    const fb = document.getElementById('feedback');
+    if (isCorrect) {
+        correct++;
+        inp.className = 'correct';
+        fb.className = 'correct';
+        fb.innerHTML = '✓ Correct! Answer: <strong>' + escHtml(currentCard.a) + '</strong>';
+        activeQuestions = activeQuestions.filter(c => c.q !== currentCard.q);
+        document.getElementById('wrongBtn').style.display = '';
+    } else {
+        errorMap[currentCard.q]++;
+        wrongCount++;
+        inp.className = 'wrong';
+        fb.className = 'wrong';
+        fb.innerHTML = '✗ Wrong. Correct answer: <strong>' + escHtml(currentCard.a) + '</strong>';
+        document.getElementById('wrongBtn').style.display = 'none';
+    }
+    document.getElementById('actionRow').className = 'visible';
+    document.getElementById('statCorrect').textContent = correct;
+    document.getElementById('statWrong').textContent = wrongCount;
+    autoSave();
+}
+
+function dontKnow() {
+    if (answered) return;
+    answered = true;
+    lastWasCorrect = false;
+    errorMap[currentCard.q]++;
+    wrongCount++;
+    const inp = document.getElementById('answerInput');
+    inp.disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('idkBtn').disabled = true;
+    const fb = document.getElementById('feedback');
+    fb.className = 'reveal';
+    fb.innerHTML = 'Answer: <strong>' + escHtml(currentCard.a) + '</strong>';
+    document.getElementById('actionRow').className = 'visible';
+    document.getElementById('wrongBtn').style.display = 'none';
+    document.getElementById('statWrong').textContent = wrongCount;
+    autoSave();
+}
+
+function markWrong() {
+    // Called when fuzzy matched as correct but user says it was actually wrong
+    if (!lastWasCorrect) return;
+    correct = Math.max(0, correct - 1);
+    wrongCount++;
+    lastWasCorrect = false;
+    errorMap[currentCard.q]++;
+    // Re-add to active queue so it gets asked again
+    activeQuestions.push(currentCard);
+    const fb = document.getElementById('feedback');
+    fb.className = 'wrong';
+    fb.innerHTML = '✗ Marked wrong. Answer: <strong>' + escHtml(currentCard.a) + '</strong>';
+    document.getElementById('wrongBtn').style.display = 'none';
+    autoSave();
+}
+
+function nextCard() {
+    const done = totalWords - activeQuestions.length;
+    if (checkBreak(done, showCard)) return;
+    showCard();
+}
+
+function showEndScreen() {
+    document.getElementById('typeContainer').style.display = 'none';
+    document.getElementById('endScreen').style.display = 'block';
+    document.getElementById('progressFill').style.width = '100%';
+
+    let totalMistakes = 0, hardestWord = 'None!', maxErrors = 0;
+    for (const [word, errors] of Object.entries(errorMap)) {
+        totalMistakes += errors;
+        if (errors > maxErrors) { maxErrors = errors; hardestWord = word + ' (' + errors + ' mistakes)'; }
+    }
+    document.getElementById('totalMistakes').textContent = totalMistakes;
+    document.getElementById('hardestWord').textContent = totalMistakes === 0 ? 'Perfect Score! 🌟' : hardestWord;
+
+    if (currentDeckFile) clearSave(currentDeckFile);
+}
+
+function goBackToStart() {
+    document.getElementById('gameCard').style.display = 'none';
+    document.getElementById('progressBar').style.display = 'none';
+    document.getElementById('endScreen').style.display = 'none';
+    document.getElementById('typeContainer').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'block';
+    document.getElementById('progressFill').style.width = '0%';
+    if (document.getElementById('presetDeckList').classList.contains('open')) renderPresetList();
+}
+
+function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('answerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitAnswer();
+});
+</script>
+</body>
+</html>
