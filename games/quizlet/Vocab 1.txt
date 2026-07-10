@@ -3,7 +3,7 @@ máy ảnh
 CD (player)
 đầu đĩa CD
 cooker
-bếp nấu ăn
+nồi cơm điện
 DVD (player)
 đầu đĩa DVD
 electric lamp
@@ -70,15 +70,3 @@ wallet
 ví (nam)
 watch
 đồng hồ đeo tay
-light/dark
-nhạt / đậm
-brown
-nâu
-grey
-xám
-orange
-cam
-pink
-hồng
-purple
-tím
