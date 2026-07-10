@@ -1,0 +1,124 @@
+address
+địa chỉ
+by post
+qua bưu điện / thư
+click (v)
+nhấp chuột
+conversation
+cuộc trò chuyện
+digital
+kỹ thuật số
+dot
+chấm
+download (n & v)
+tải xuống
+email (n & v)
+email
+envelope
+phong bì
+information
+thông tin
+internet
+mạng internet
+keyboard
+bàn phím
+photograph
+ảnh / bức ảnh
+photography
+nhiếp ảnh / chụp ảnh
+screen
+màn hình
+text (n & v)
+tin nhắn / nhắn tin
+website
+trang web
+advertisement
+quảng cáo
+article
+bài báo
+bill
+hóa đơn
+diary
+nhật ký
+form
+mẫu (đơn)
+insurance
+bảo hiểm
+license
+giấy phép / bằng lái
+magazine
+tạp chí
+menu
+thực đơn
+message
+tin nhắn
+newspaper
+báo
+passport
+hộ chiếu
+postcard
+bưu thiếp
+project
+dự án
+ticket
+vé
+advanced
+nâng cao
+beginner
+người mới bắt đầu
+board
+bảng
+bookshelf
+giá sách
+class(room)
+lớp học / phòng học
+clever
+thông minh
+coach
+huấn luyện viên
+college
+cao đẳng / đại học
+course
+khóa học
+desk
+bàn học
+dictionary
+từ điển
+diploma
+bằng cấp / chứng chỉ
+exam(ination)
+kỳ thi / bài kiểm tra
+Geography
+địa lý
+History
+lịch sử
+homework
+bài tập về nhà
+instructions
+hướng dẫn
+language
+ngôn ngữ
+lesson
+bài học
+level
+trình độ / cấp độ
+Mathematics
+toán học
+practice
+luyện tập (danh từ)
+practise
+luyện tập (động từ)
+project
+dự án
+pupil
+học sinh
+remember
+nhớ
+Science
+khoa học
+studies
+việc học
+subject
+môn học
+teach
+dạy
