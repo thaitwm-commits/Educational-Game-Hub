@@ -1,19 +1,19 @@
 address
 địa chỉ
 by post
-qua bưu điện / thư
+qua bưu điện / bằng đường bưu điện
 click (v)
 nhấp chuột
 conversation
 cuộc trò chuyện
 digital
-kỹ thuật số
+kỹ thuật số / điện tử
 dot
 chấm
 download (n & v)
 tải xuống
-email (n & v)
-email
+upload
+tải lên
 envelope
 phong bì
 information
@@ -67,7 +67,7 @@ nâng cao
 beginner
 người mới bắt đầu
 board
-bảng
+hội đồng
 bookshelf
 giá sách
 class(room)
@@ -77,7 +77,7 @@ thông minh
 coach
 huấn luyện viên
 college
-cao đẳng / đại học
+cao đẳng 
 course
 khóa học
 desk
@@ -85,7 +85,7 @@ bàn học
 dictionary
 từ điển
 diploma
-bằng cấp / chứng chỉ
+bằng cấp / chứng chỉ cấp 3
 exam(ination)
 kỳ thi / bài kiểm tra
 Geography
