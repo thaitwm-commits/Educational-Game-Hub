@@ -90,6 +90,30 @@ body {
 }
 #startScreen p { margin-bottom: 1.5rem; color: #eee; }
 
+/* ---- Student name input ---- */
+.student-area {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.student-area input {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1rem;
+    text-align: center;
+    width: 100%;
+    max-width: 300px;
+}
+.student-area input:focus {
+    outline: none;
+    border-color: #6aaa64;
+}
+
 .file-picker-area {
     display: flex;
     flex-direction: column;
@@ -406,6 +430,11 @@ input[type="file"] { display: none; }
     <h1>Flashcard — Type Mode</h1>
     <p style="color:#eee;margin-bottom:1.5rem;">Type the answer, press Enter or Check.</p>
 
+    <div class="student-area">
+        <label for="studentNameInput" style="color: #ffca28; font-weight: bold;">Name</label>
+        <input type="text" id="studentNameInput" placeholder="..." onchange="saveStudentName(this.value)">
+    </div>
+
     <div class="file-picker-area">
         <button class="toggle-preset-btn" onclick="togglePresetList()" id="togglePresetBtn">
              Choose Saved Deck ▾
@@ -459,21 +488,60 @@ input[type="file"] { display: none; }
             <div class="stat-label">Hardest Word</div>
             <div class="stat-value" id="hardestWord">-</div>
         </div>
-        <button class="restart-btn" onclick="goBackToStart()">↩ Back to Menu</button>
+        <button class="restart-btn" onclick="handleFinishAndGoBack()">↩ Back to Menu</button>
     </div>
 </div>
 
 <script>
 // ============================================================
-//  PRESET DECKS — add entries here
-//  { name: "Display Name", file: "filename.txt", desc: "description" }
+//  PRESET DECKS — nạp tự động từ PRESET_DECKS.json
+//  (file phải nằm cùng thư mục với file HTML này)
+//  Chỉ cần liệt kê tên file .txt trong PRESET_DECKS.json,
+//  tên hiển thị được TỰ ĐỘNG sinh ra từ tên file.
 // ============================================================
-const PRESET_DECKS = [
-    { name: "Legal Glossary 1", file: "legal_glossary.txt", desc: "Legal terms & definitions" },
-    { name: "Legal Glossary 2 ", file: "deluxe_glossary.txt", desc: "Legal terms & definitions" },
-    { name: "Legal Glossary 3", file: "deluxe2_glossary.txt", desc: "Legal terms & definitions" },
-];
-// ============================================================
+let PRESET_DECKS = [];
+
+// "legal_glossary.txt" -> "Legal Glossary"
+function deriveDeckName(filename) {
+    let base = filename.replace(/\.[^/.]+$/, '');
+    base = base.replace(/[_-]+/g, ' ').trim();
+    base = base.replace(/\b\w/g, c => c.toUpperCase());
+    return base || filename;
+}
+
+async function fetchPresetDecks() {
+    try {
+        const resp = await fetch('PRESET_DECKS.json');
+        if (!resp.ok) throw new Error('Không tìm thấy PRESET_DECKS.json');
+        const filesArray = await resp.json();
+        PRESET_DECKS = filesArray.map(entry => {
+            if (typeof entry === 'string') {
+                return { name: deriveDeckName(entry), file: entry, desc: '' };
+            }
+            return {
+                name: entry.name || deriveDeckName(entry.file),
+                file: entry.file,
+                desc: entry.desc || ''
+            };
+        });
+    } catch (e) {
+        console.error('Lỗi nạp danh sách deck:', e);
+        PRESET_DECKS = [];
+    }
+    if (document.getElementById('presetDeckList').classList.contains('open')) {
+        renderPresetList();
+    }
+}
+
+// ---- Tên học sinh (localStorage) ----
+function initStudentName() {
+    const savedName = localStorage.getItem('tutor_student_name') || '';
+    document.getElementById('studentNameInput').value = savedName;
+}
+function saveStudentName(val) {
+    localStorage.setItem('tutor_student_name', val.trim());
+}
+window.addEventListener('DOMContentLoaded', initStudentName);
 
 // ---- BG toggle ----
 function toggleBg() {
@@ -535,7 +603,7 @@ function renderPresetList() {
     const list = document.getElementById('presetDeckList');
     list.innerHTML = '';
     if (PRESET_DECKS.length === 0) {
-        list.innerHTML = '<div style="color:#aaa;padding:0.5rem;">No preset decks configured.</div>';
+        list.innerHTML = '<div style="color:#aaa;padding:0.5rem;">No preset decks configured (hoặc đang nạp).</div>';
         return;
     }
     PRESET_DECKS.forEach(deck => {
@@ -600,6 +668,10 @@ let answered = false;
 let lastWasCorrect = false;
 let correct = 0;
 let wrongCount = 0;
+
+// Lưu kết quả cuối bài để gửi lên Google Sheet
+let finalMistakesCount = 0;
+let finalHardestWordText = "None!";
 
 // ---- Parse ----
 function parseCards(text) {
@@ -843,8 +915,12 @@ function showEndScreen() {
         totalMistakes += errors;
         if (errors > maxErrors) { maxErrors = errors; hardestWord = word + ' (' + errors + ' mistakes)'; }
     }
+
+    finalMistakesCount = totalMistakes;
+    finalHardestWordText = totalMistakes === 0 ? 'Perfect Score! 🌟' : hardestWord;
+
     document.getElementById('totalMistakes').textContent = totalMistakes;
-    document.getElementById('hardestWord').textContent = totalMistakes === 0 ? 'Perfect Score! 🌟' : hardestWord;
+    document.getElementById('hardestWord').textContent = finalHardestWordText;
 
     if (currentDeckFile) clearSave(currentDeckFile);
 }
@@ -859,6 +935,38 @@ function goBackToStart() {
     if (document.getElementById('presetDeckList').classList.contains('open')) renderPresetList();
 }
 
+// ============================================================
+//  GỬI NGẦM KẾT QUẢ LÊN GOOGLE SHEET QUA GOOGLE FORM
+// ============================================================
+function handleFinishAndGoBack() {
+    let studentName = document.getElementById('studentNameInput').value.trim();
+    if (!studentName) studentName = "Học sinh ẩn danh";
+
+    const lessonName = currentDeckFile ? currentDeckFile.replace('.txt', '') : "File_Upload_Ngoai";
+
+    // LINK GOOGLE FORM (giữ nguyên như các bản trước — /formResponse, không phải /viewform)
+    const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScgl4EBASDfjwjWI4NGbtVBO5F26syfFCiUh-Mqju21thlqsA/formResponse";
+
+    // Dùng URLSearchParams (KHÔNG FormData, KHÔNG tự set header Content-Type) —
+    // đây là cách duy nhất Google Forms đọc đúng từng entry.XXXXX qua fetch.
+    const params = new URLSearchParams();
+    params.append('entry.1337893345', studentName);               // Tên học sinh
+    params.append('entry.1148476023', lessonName);                 // Tên bài học
+    params.append('entry.86157765', 'type');                        // Chế độ chơi (Type Mode)
+    params.append('entry.1874959324', String(finalMistakesCount));  // Số lỗi sai
+    params.append('entry.398238978', finalHardestWordText);         // Từ khó nhất
+
+    fetch(formUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: params
+    })
+    .then(() => console.log("Đã đồng bộ tiến độ học tập của " + studentName + " lên Google Sheets thành công!"))
+    .catch(err => console.error("Lỗi đồng bộ hệ thống:", err));
+
+    goBackToStart();
+}
+
 function escHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -866,6 +974,9 @@ function escHtml(s) {
 document.getElementById('answerInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') submitAnswer();
 });
+
+// ---- Init ----
+fetchPresetDecks();
 </script>
 </body>
 </html>
