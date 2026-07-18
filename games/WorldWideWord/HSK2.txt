@@ -1,0 +1,400 @@
+啊 (a)
+à, a (trợ từ)
+爱好 (àihào)
+sở thích
+白色 (báisè)
+màu trắng
+班 (bān)
+lớp
+帮 (bāng)
+giúp
+帮忙 (bāngmáng)
+giúp đỡ
+包 (bāo)
+túi
+本子 (běnzi)
+vở
+比 (bǐ)
+so sánh
+笔 (bǐ)
+bút
+别 (bié)
+đừng
+不好意思 (bù hǎoyìsi)
+ngại / xin lỗi
+不错 (búcuò)
+không tệ
+长 (cháng)
+dài
+车站 (chēzhàn)
+trạm xe
+出 (chū)
+ra
+床 (chuáng)
+giường
+出国 (chūguó)
+ra nước ngoài
+出来 (chūlái)
+đi ra
+出门 (chūmén)
+ra ngoài
+出去 (chūqù)
+đi ra ngoài
+词 (cí)
+từ
+次 (cì)
+lần
+从 (cóng)
+từ
+从小 (cóngxiǎo)
+từ nhỏ
+错 (cuò)
+sai
+打 (dǎ)
+đánh
+打车 (dǎchē)
+bắt taxi
+打开 (dǎkāi)
+mở
+但 (dàn)
+nhưng
+但是 (dànshì)
+nhưng
+得 (de)
+trợ từ bổ ngữ
+地 (de)
+trợ từ trạng ngữ
+等 (děng)
+đợi
+点 (diǎn)
+điểm / giờ
+地铁 (dìtiě)
+tàu điện ngầm
+动 (dòng)
+động
+懂 (dǒng)
+hiểu
+饭馆 (fànguǎn)
+nhà hàng
+飞 (fēi)
+bay
+高 (gāo)
+cao
+告诉 (gàosu)
+nói / cho biết
+高中 (gāozhōng)
+cấp 3
+跟 (gēn)
+với
+个子 (gèzi)
+chiều cao
+公交车 (gōngjiāochē)
+xe buýt
+过 (guo)
+trợ từ kinh nghiệm
+过 (guò)
+qua
+过来 (guòlái)
+qua đây
+过年 (guònián)
+ăn tết
+过去 (guòqù)
+đi qua
+还是 (háishi)
+hay là
+黑色 (hēisè)
+màu đen
+红茶 (hóngchá)
+trà đen
+红色 (hóngsè)
+màu đỏ
+后面 (hòumiàn)
+phía sau
+画 (huà)
+vẽ
+花 (huā)
+hoa
+花 (huā)
+tiêu (tiền)
+坏 (huài)
+xấu / hỏng
+回来 (huílái)
+quay lại
+回去 (huíqù)
+quay về
+间 (jiān)
+gian (phòng)
+教 (jiāo)
+dạy
+教室 (jiàoshì)
+lớp học
+机场 (jīchǎng)
+sân bay
+记得 (jìde)
+nhớ
+介绍 (jièshào)
+giới thiệu
+进 (jìn)
+vào
+近 (jìn)
+gần
+经常 (jīngcháng)
+thường xuyên
+进来 (jìnlái)
+vào đây
+进去 (jìnqù)
+đi vào
+机票 (jīpiào)
+vé máy bay
+就 (jiù)
+liền / ngay
+酒店 (jiǔdiàn)
+khách sạn
+咖啡 (kāfēi)
+cà phê
+开始 (kāishǐ)
+bắt đầu
+开学 (kāixué)
+khai giảng
+考 (kǎo)
+thi
+考试 (kǎoshì)
+kỳ thi
+可能 (kěnéng)
+có thể
+快 (kuài)
+nhanh
+快乐 (kuàilè)
+vui / hạnh phúc
+快要 (kuàiyào)
+sắp
+裤子 (kùzi)
+quần
+篮球 (lánqiú)
+bóng rổ
+累 (lèi)
+mệt
+离 (lí)
+cách
+里面 (lǐmiàn)
+bên trong
+楼 (lóu)
+tòa nhà / tầng
+路 (lù)
+đường
+绿茶 (lǜchá)
+trà xanh
+绿色 (lǜsè)
+màu xanh lá
+路上 (lùshang)
+trên đường
+旅游 (lǚyóu)
+du lịch
+慢 (màn)
+chậm
+每 (měi)
+mỗi
+没意思 (méi yìsi)
+chán
+门 (mén)
+cửa
+门口 (ménkǒu)
+cửa ra vào
+门票 (ménpiào)
+vé vào cửa
+面 (miàn)
+mì
+名 (míng)
+tên
+拿 (ná)
+cầm / lấy
+奶茶 (nǎichá)
+trà sữa
+奶奶 (nǎinai)
+bà (nội)
+那么 (nàme)
+như vậy
+男孩儿 (nánháir)
+bé trai
+那样 (nàyàng)
+như vậy
+鸟 (niǎo)
+chim
+女孩儿 (nǚháir)
+bé gái
+旁边 (pángbiān)
+bên cạnh
+跑 (pǎo)
+chạy
+跑步 (pǎobù)
+chạy bộ
+票 (piào)
+vé
+前面 (qiánmiàn)
+phía trước
+起来 (qǐlái)
+đứng dậy
+晴 (qíng)
+trời nắng
+球 (qiú)
+bóng
+妻子 (qīzi)
+vợ
+让 (ràng)
+cho phép / để
+肉 (ròu)
+thịt
+商场 (shāngchǎng)
+trung tâm thương mại
+上来 (shànglái)
+lên đây
+上面 (shàngmiàn)
+phía trên
+上去 (shàngqù)
+đi lên
+上网 (shàngwǎng)
+lên mạng
+生日 (shēngrì)
+sinh nhật
+身体 (shēntǐ)
+cơ thể
+时 (shí)
+giờ / lúc
+事情 (shìqing)
+sự việc / chuyện
+手 (shǒu)
+tay
+手表 (shǒubiǎo)
+đồng hồ đeo tay
+书包 (shūbāo)
+cặp sách
+舒服 (shūfu)
+dễ chịu
+送 (sòng)
+tặng / đưa
+虽然 (suīrán)
+mặc dù
+所以 (suǒyǐ)
+vì vậy
+疼 (téng)
+đau
+题 (tí)
+đề / câu hỏi
+踢 (tī)
+đá
+条 (tiáo)
+cái (lượng từ dài)
+跳舞 (tiàowǔ)
+nhảy múa
+头 (tóu)
+đầu
+外国 (wàiguó)
+nước ngoài
+外面 (wàimiàn)
+bên ngoài
+完 (wán)
+xong
+万 (wàn)
+vạn
+忘 (wàng)
+quên
+往 (wǎng)
+hướng về
+网上 (wǎngshang)
+trên mạng
+位 (wèi)
+vị (lượng từ người)
+为什么 (wèishénme)
+tại sao
+洗 (xǐ)
+rửa / giặt
+下来 (xiàlái)
+xuống
+下面 (xiàmiàn)
+phía dưới
+笑 (xiào)
+cười
+小孩儿 (xiǎoháir)
+trẻ con
+小时候 (xiǎoshíhou)
+lúc nhỏ
+下去 (xiàqù)
+đi xuống
+姓 (xìng)
+họ (tên họ)
+姓名 (xìngmíng)
+họ tên
+洗手间 (xǐshǒujiān)
+nhà vệ sinh
+希望 (xīwàng)
+hy vọng
+眼睛 (yǎnjing)
+mắt
+颜色 (yánsè)
+màu sắc
+药 (yào)
+thuốc
+药店 (yàodiàn)
+tiệm thuốc
+爷爷 (yéye)
+ông (nội)
+一会儿 (yíhuìr)
+một lúc
+已经 (yǐjīng)
+đã
+阴 (yīn)
+âm u / nhiều mây
+因为 (yīnwèi)
+bởi vì
+一起 (yìqǐ)
+cùng
+意思 (yìsi)
+ý nghĩa
+游 (yóu)
+chơi / bơi
+右 (yòu)
+bên phải
+有意思 (yǒuyìsi)
+thú vị
+右边 (yòubiān)
+bên phải
+有时 (yǒushí)
+có lúc
+游泳 (yóuyǒng)
+bơi lội
+鱼 (yú)
+cá
+远 (yuǎn)
+xa
+运动 (yùndòng)
+vận động / thể thao
+站 (zhàn)
+trạm
+丈夫 (zhàngfu)
+chồng
+着 (zhe)
+trợ từ tiếp diễn
+这么 (zhème)
+như thế này
+正 (zhèng)
+đang
+这样 (zhèyàng)
+như vậy
+周 (zhōu)
+tuần
+准备 (zhǔnbèi)
+chuẩn bị
+自己 (zìjǐ)
+bản thân
+走 (zǒu)
+đi
+走路 (zǒulù)
+đi bộ
+最 (zuì)
+nhất
+左 (zuǒ)
+bên trái
+左边 (zuǒbiān)
+bên trái
+足球 (zúqiú)
+bóng đá
