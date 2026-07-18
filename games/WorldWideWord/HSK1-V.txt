@@ -1,0 +1,362 @@
+tôi
+我 (wǒ)
+bạn
+你 (nǐ)
+ngài (kính trọng)
+您 (nín)
+anh ấy/ ông ấy
+他 (tā)
+cô ấy/ chị ấy
+她 (tā)
+chúng tôi
+我们 (wǒmen)
+các bạn
+你们 (nǐmen)
+này
+这 (zhè)
+đó/kia
+那 (nà)
+nào
+哪 (nǎ)
+ai
+谁 (shéi)
+cái gì
+什么 (shénme)
+ở đâu
+哪儿 (nǎr)
+như thế nào
+怎么 (zěnme)
+thế nào (hỏi ý kiến)
+怎么样 (zěnmeyàng)
+tại sao
+为什么 (wèishénme)
+bao nhiêu
+多少 (duōshǎo)
+mấy
+几 (jǐ)
+một
+一 (yī)
+hai
+二 (èr)
+ba
+三 (sān)
+bốn
+四 (sì)
+năm
+五 (wǔ)
+sáu
+六 (liù)
+bảy
+七 (qī)
+tám
+八 (bā)
+chín
+九 (jiǔ)
+mười
+十 (shí)
+số không
+零 (líng)
+cái (lượng từ)
+个 (gè)
+tuổi
+岁 (suì)
+đồng (tiền tệ)
+块 (kuài)
+bố
+爸爸 (bàba)
+mẹ
+妈妈 (māma)
+con trai
+儿子 (érzi)
+con gái
+女儿 (nǚ'ér)
+bạn bè
+朋友 (péngyou)
+giáo viên
+老师 (lǎoshī)
+học sinh
+学生 (xuésheng)
+bác sĩ
+医生 (yīshēng)
+bạn học
+同学 (tóngxué)
+ông/anh (xưng hô lịch sự)
+先生 (xiānsheng)
+cô/chị (xưng hô lịch sự)
+小姐 (xiǎojiě)
+con mèo
+猫 (māo)
+con chó
+狗 (gǒu)
+bây giờ
+现在 (xiànzài)
+hôm nay
+今天 (jīntiān)
+ngày mai
+明天 (míngtiān)
+hôm qua
+昨天 (zuótiān)
+năm
+年 (nián)
+tháng
+月 (yuè)
+ngày (số)
+号 (hào)
+ngày
+日 (rì)
+tuần
+星期 (xīngqī)
+buổi sáng
+上午 (shàngwǔ)
+buổi trưa
+中午 (zhōngwǔ)
+buổi chiều
+下午 (xiàwǔ)
+lúc, thời điểm
+时候 (shíhou)
+giờ (đồng hồ)
+点 (diǎn)
+phút
+分钟 (fēnzhōng)
+Trung Quốc
+中国 (Zhōngguó)
+Bắc Kinh
+北京 (Běijīng)
+nhà
+家 (jiā)
+trường học
+学校 (xuéxiào)
+bệnh viện
+医院 (yīyuàn)
+cửa hàng
+商店 (shāngdiàn)
+bên trong
+里 (lǐ)
+trên
+上 (shàng)
+dưới
+下 (xià)
+phía trước
+前面 (qiánmiàn)
+phía sau
+后面 (hòumiàn)
+ở đây
+这里/这儿 (zhèlǐ/zhèr)
+ở đó
+那里/那儿 (nàlǐ/nàr)
+cơm
+米饭 (mǐfàn)
+món ăn, rau
+菜 (cài)
+trái cây
+水果 (shuǐguǒ)
+táo
+苹果 (píngguǒ)
+nước
+水 (shuǐ)
+trà
+茶 (chá)
+trứng gà
+鸡蛋 (jīdàn)
+ăn
+吃 (chī)
+uống
+喝 (hē)
+nhà hàng
+饭馆 (fànguǎn)
+cốc, ly
+杯 (bēi)
+quần áo
+衣服 (yīfu)
+tiền
+钱 (qián)
+mua
+买 (mǎi)
+đồ vật
+东西 (dōngxi)
+máy bay
+飞机 (fēijī)
+xe taxi
+出租车 (chūzūchē)
+xe ô tô
+汽车 (qìchē)
+ga tàu hỏa
+火车站 (huǒchēzhàn)
+đến
+来 (lái)
+đi
+去 (qù)
+trở về
+回 (huí)
+đi bộ
+走 (zǒu)
+ngồi
+坐 (zuò)
+xem, nhìn
+看 (kàn)
+nhìn thấy
+看见 (kànjiàn)
+nghe
+听 (tīng)
+nói
+说 (shuō)
+nói chuyện
+说话 (shuōhuà)
+đọc
+读 (dú)
+viết
+写 (xiě)
+gọi, tên là
+叫 (jiào)
+hỏi
+问 (wèn)
+mời, xin
+请 (qǐng)
+tên
+名字 (míngzi)
+tiếng Hán
+汉语 (Hànyǔ)
+chữ
+字 (zì)
+sách
+书 (shū)
+ti vi
+电视 (diànshì)
+phim
+电影 (diànyǐng)
+máy tính
+电脑 (diànnǎo)
+điện thoại
+电话 (diànhuà)
+gọi điện thoại
+打电话 (dǎ diànhuà)
+làm
+做 (zuò)
+công việc
+工作 (gōngzuò)
+học tập
+学习 (xuéxí)
+phòng học
+教室 (jiàoshì)
+thích
+喜欢 (xǐhuan)
+yêu
+爱 (ài)
+muốn, nghĩ
+想 (xiǎng)
+muốn, cần
+要 (yào)
+quen biết
+认识 (rènshi)
+biết
+知道 (zhīdào)
+cảm thấy
+觉得 (juéde)
+ngủ
+睡觉 (shuìjiào)
+thức dậy
+起床 (qǐchuáng)
+nghỉ ngơi
+休息 (xiūxi)
+bị bệnh
+生病 (shēngbìng)
+mở, lái (xe)
+开 (kāi)
+đóng
+关 (guān)
+bắt đầu
+开始 (kāishǐ)
+học
+学 (xué)
+ở, đang (trợ động từ)
+在 (zài)
+có
+有 (yǒu)
+là
+是 (shì)
+không có
+没有 (méiyǒu)
+không
+不 (bù)
+cũng
+也 (yě)
+đều
+都 (dōu)
+rất
+很 (hěn)
+quá
+太 (tài)
+vô cùng
+非常 (fēicháng)
+vẫn, còn
+还 (hái)
+lại, nữa
+再 (zài)
+cùng nhau
+一起 (yìqǐ)
+và
+和 (hé)
+nhưng
+但是 (dànshì)
+bởi vì
+因为 (yīnwèi)
+cho nên
+所以 (suǒyǐ)
+từ
+从 (cóng)
+đến
+到 (dào)
+đúng, đối với
+对 (duì)
+cho, tặng
+给 (gěi)
+đem, lấy (giới từ)
+把 (bǎ)
+trợ từ sở hữu
+的 (de)
+trợ từ hoàn thành
+了 (le)
+trợ từ nghi vấn
+吗 (ma)
+trợ từ nghi vấn
+呢 (ne)
+trợ từ đề nghị
+吧 (ba)
+to, lớn
+大 (dà)
+nhỏ
+小 (xiǎo)
+nhiều
+多 (duō)
+ít
+少 (shǎo)
+tốt
+好 (hǎo)
+vui vẻ
+高兴 (gāoxìng)
+xinh đẹp
+漂亮 (piàoliang)
+nóng
+热 (rè)
+lạnh
+冷 (lěng)
+cao
+高 (gāo)
+mới
+新 (xīn)
+bận
+忙 (máng)
+xin chào (lịch sự)
+您好 (nínhǎo)
+xin chào
+你好 (nǐhǎo)
+cảm ơn
+谢谢 (xièxie)
+không có gì
+不客气 (bú kèqi)
+xin lỗi
+对不起 (duìbuqǐ)
+không sao
+没关系 (méi guānxi)
+tạm biệt
+再见 (zàijiàn)
