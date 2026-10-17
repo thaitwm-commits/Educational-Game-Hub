@@ -45,6 +45,11 @@
     "path": "games/WorldWideWord/www.html"
   },
   {
+    "title": "Reading is cool",
+    "description": "Read books with AI, healthily",
+    "path": "games/BRIC/index.html"
+  },
+  {
     "title": "Compiler: NOT A GAME",
     "description": "I'm too lazy to go home to compile so here hj",
     "path": "compiler.html"
