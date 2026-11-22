@@ -49,6 +49,11 @@
     "description": "Read books with AI, healthily",
     "path": "games/BRIC/index.html"
   },
+   {
+    "title": "One night at Sheepy's",
+    "description": "API fueled ghost tried to kill you",
+    "path": "games/ONAS/index.html"
+  },
   {
     "title": "Compiler: NOT A GAME",
     "description": "I'm too lazy to go home to compile so here hj",
