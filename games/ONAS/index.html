@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Flash Office – Grammar Surveillance</title>
+<title>ONAS/title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
 <style>
 :root{--bg:#0b0c10;--fg:#c9ccd6;--mut:#7d8294;--gold:#f5b700;--green:#2ee57b;box-sizing:border-box}
@@ -79,6 +79,10 @@ canvas{width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
 .btn{font-size:20px;font-weight:400}
 .end h2{font-size:64px;font-weight:400;letter-spacing:4px}
 .hint{font-size:18px}
+.panel textarea{background:#05100c;color:#ecfdf5;border:1px solid #2f6650;border-radius:5px;padding:6px 8px;font:inherit;width:100%;resize:vertical}
+.th{position:relative;width:64px;height:64px}
+.th img{width:100%;height:100%;object-fit:cover;border:1px solid #2f6650;border-radius:4px;display:block}
+.th button{position:absolute;top:-7px;right:-7px;width:20px;height:20px;line-height:16px;padding:0;border-radius:50%;border:1px solid #4ade80;background:#14382a;color:#fff;cursor:pointer;font:inherit}
 </style>
 </head>
 <body>
@@ -117,7 +121,8 @@ canvas{width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
   <h2>Settings</h2>
   <div class="row"><label for="key">API Key</label><div style="display:flex;gap:6px"><input type="password" id="key" placeholder="Paste Gemini API key"><button type="button" class="btn" id="lock">Lock</button></div></div>
   <div class="row"><label for="model">Model</label><input type="text" id="model" value="gemini-3.5-flash"></div>
-  <div class="row"><label for="prompt">Topic</label><input type="text" id="prompt" value="Past Simple and Present Perfect"></div>
+  <div class="row" style="align-items:start"><label for="prompt">Topic / instructions</label><div><textarea id="prompt" rows="4" placeholder="Any topic: grammar, science, history, a story... or describe what the images are about">Past Simple and Present Perfect</textarea><div id="wc" style="margin-top:2px">0 / 250 words</div></div></div>
+  <div class="row" style="align-items:start"><label>Images (max 5)</label><div><label class="btn" style="display:inline-block;color:#a7f3d0">Add images<input type="file" id="imgFile" accept="image/*" multiple hidden></label> <span id="imgInfo">0 / 5 images</span><div id="thumbs" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px"></div></div></div>
   <div class="row"><label for="count">Questions (1–20)</label><input type="number" id="count" min="1" max="20" value="10"></div>
   <div class="row"><label for="livesIn">Lives (1–9)</label><input type="number" id="livesIn" min="1" max="9" value="3"></div>
   <div class="row"><label for="jump">Jumpscare</label><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="jump" checked> On (off = red static)</label></div>
@@ -233,21 +238,21 @@ async function generate(){
   savePrefs();
   const apiKey = $('key').value.trim(), topic = $('prompt').value.trim(), n = totalQ(), model = $('model').value.trim() || 'gemini-3.5-flash';
   if (!apiKey){ $('msg').textContent = 'Missing API key!'; return; }
-  if (!topic){ $('msg').textContent = 'Enter a grammar topic!'; return; }
+  if (!topic && !imgs.length){ $('msg').textContent = 'Enter a topic or add an image!'; return; }
   store.set(KEY, apiKey); if (!keyLocked) toggleLock();
   $('gen').disabled = true; $('msg').textContent = '';
   setModal(false); $('load').classList.remove('hidden');
-  $('status').textContent = 'Generating ' + n + ' questions (' + topic + ') with ' + model + '...';
+  $('status').textContent = 'Generating ' + n + ' questions with ' + model + '...';
   const schema = {type:'ARRAY', items:{type:'OBJECT', properties:{
-    question:{type:'STRING', description:'Fill-in-the-blank grammar sentence using ___'},
+    question:{type:'STRING', description:'The question text. For grammar topics use a fill-in-the-blank sentence with ___'},
     correctAnswer:{type:'STRING'},
     wrongAnswers:{type:'ARRAY', items:{type:'STRING'}, description:'Exactly 2 plausible distractors'}
   }, required:['question','correctAnswer','wrongAnswers']}};
-  const text = 'Generate ' + n + ' English grammar multiple-choice questions for: "' + topic + '". Each has 1 correctAnswer and exactly 2 wrongAnswers. Include context or time markers so only correctAnswer is right.';
+  const text = 'You write quiz questions for a game. Create exactly ' + n + ' multiple-choice questions about the topic below and/or the attached images (they may be notes, diagrams, photos or study material; base the questions on what they show). The topic can be anything: grammar, vocabulary, science, history, math, general knowledge and so on. Write in the same language as the topic text (default to English). Each question has exactly 1 correctAnswer and exactly 2 plausible wrongAnswers. Keep every answer short (under 8 words), make sure only one answer is clearly correct, and do not repeat questions. For grammar topics use fill-in-the-blank sentences with ___ and add context so only one option fits.\nTopic: ' + (topic || '(none, use the images)');
   try {
     const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(apiKey), {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({contents:[{parts:[{text}]}], generationConfig:{responseMimeType:'application/json', responseSchema:schema}})
+      body: JSON.stringify({contents:[{parts:[...imgs.map(i => ({inlineData:{mimeType:i.mime, data:i.data}})), {text}]}], generationConfig:{responseMimeType:'application/json', responseSchema:schema}})
     });
     if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
     const data = await res.json();
@@ -581,7 +586,7 @@ cv.addEventListener('pointermove', ev => {
 cv.addEventListener('pointerleave', () => mouse.inside = false);
 cv.addEventListener('pointerdown', ev => { drag = {x:pos(ev).x, moved:false}; });
 cv.addEventListener('pointerup', ev => { const p = pos(ev); if (!drag || !drag.moved) doFlash(p.x + cam, p.y); drag = null; });
-addEventListener('keydown', e => { if (e.target.tagName !== 'INPUT') keys[e.key.toLowerCase()] = true; });
+addEventListener('keydown', e => { if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') keys[e.key.toLowerCase()] = true; });
 addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
 $('gear').onclick = () => setModal();
@@ -594,6 +599,47 @@ $('again').onclick = () => { if (questions.length) begin(); };
 $('count').onchange = () => { savePrefs(); renderQB(); };
 $('livesIn').onchange = () => { savePrefs(); };
 
+const imgs = [];
+function renderImgs(){
+  const box = $('thumbs'); box.innerHTML = '';
+  imgs.forEach((im, i) => {
+    const d = document.createElement('div'); d.className = 'th';
+    const img = document.createElement('img'); img.src = im.url; img.alt = '';
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = '×'; b.setAttribute('aria-label', 'Remove image');
+    b.onclick = () => { imgs.splice(i, 1); renderImgs(); };
+    d.append(img, b); box.appendChild(d);
+  });
+  $('imgInfo').textContent = imgs.length + ' / 5 images';
+}
+function shrink(file){
+  return new Promise((res, rej) => {
+    const u = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const s = Math.min(1, 1024 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+      const url = c.toDataURL('image/jpeg', .82); res({url, data:url.split(',')[1], mime:'image/jpeg'});
+    };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('bad image')); };
+    im.src = u;
+  });
+}
+$('imgFile').onchange = async ev => {
+  const files = [...ev.target.files]; ev.target.value = ''; $('msg').textContent = '';
+  for (const f of files){
+    if (imgs.length >= 5){ $('msg').textContent = 'Maximum 5 images.'; break; }
+    if (!f.type.startsWith('image/')) continue;
+    try { imgs.push(await shrink(f)); } catch { $('msg').textContent = 'Could not read ' + f.name; }
+  }
+  renderImgs();
+};
+function updateWc(){
+  let v = $('prompt').value; const m = [...v.matchAll(/\S+/g)];
+  if (m.length > 250){ const l = m[249]; v = v.slice(0, l.index + l[0].length); $('prompt').value = v; }
+  $('wc').textContent = Math.min(m.length, 250) + ' / 250 words';
+}
+$('prompt').addEventListener('input', updateWc);
+
 const savedKey = store.get(KEY);
 if (savedKey){ $('key').value = savedKey; $('key').readOnly = true; keyLocked = true; $('lock').textContent = 'Unlock'; }
 try {
@@ -605,7 +651,7 @@ try {
   if (typeof p.jump === 'boolean') $('jump').checked = p.jump;
 } catch {}
 maxLives = lives = clampLives(); jumpOn = $('jump').checked;
-renderQB(); renderLives(); updateGold(); setModal(true);
+updateWc(); renderImgs(); renderQB(); renderLives(); updateGold(); setModal(true);
 
 let last = performance.now();
 (function loop(now){
