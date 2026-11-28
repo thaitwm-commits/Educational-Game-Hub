@@ -1,29 +1,93 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Vocab JSON Compiler Pro (Merge Mode)</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; line-height: 1.6; background: #eceff1; color: #333; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; margin-top: 0; }
-        textarea { width: 100%; height: 120px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; box-sizing: border-box; font-family: monospace; }
-        button { padding: 12px 24px; background: #27ae60; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; transition: background 0.3s; margin-right: 5px; margin-bottom: 5px; }
-        button:hover { background: #219150; }
-        .btn-clear { background: #e74c3c; }
-        .btn-clear:hover { background: #c0392b; }
-        .btn-merge { background: #f39c12; }
-        .btn-merge:hover { background: #d35400; }
-        .panel { background: #f9f9f9; padding: 15px; border-left: 5px solid #3498db; margin-bottom: 20px; border-radius: 4px; }
-        #output { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-size: 13px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; }
-        input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .hint { font-size: 12px; color: #666; margin-bottom: 10px; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocab JSON Compiler Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; line-height: 1.6; background: #eceff1; color: #333; margin: 0; transition: background .2s; }
+    body.arcade-on { background: #140c2b; padding: 30px; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { color: #2c3e50; margin-top: 0; }
+    textarea { width: 100%; height: 120px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; box-sizing: border-box; font-family: monospace; }
+    button { padding: 12px 24px; background: #27ae60; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; transition: background 0.3s; margin-right: 5px; margin-bottom: 5px; }
+    button:hover { background: #219150; }
+    .btn-clear { background: #e74c3c; }
+    .btn-clear:hover { background: #c0392b; }
+    .btn-merge { background: #f39c12; }
+    .btn-merge:hover { background: #d35400; }
+    .panel { background: #f9f9f9; padding: 15px; border-left: 5px solid #3498db; margin-bottom: 20px; border-radius: 4px; }
+    #output { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-size: 13px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; }
+    input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .hint { font-size: 12px; color: #666; margin-bottom: 10px; }
+    hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+
+    /* ---------- TAB BAR ---------- */
+    .tabs { max-width: 800px; margin: 0 auto 14px; display: flex; gap: 8px; }
+    .tabs button { margin: 0; border-radius: 6px 6px 0 0; background: #b0bec5; flex: 1; }
+    .tabs button.active { background: #2c3e50; }
+    body.arcade-on .tabs button { font-family: 'Press Start 2P', monospace; font-size: 10px; border-radius: 0; background: #2a1a55; color: #8f7fd1; border: 3px solid #2a1a55; }
+    body.arcade-on .tabs button.active { background: #ffd23f; color: #140c2b; border-color: #ffd23f; }
+    .tab { display: none; } .tab.show { display: block; }
+
+    /* ---------- ARCADE TAB ---------- */
+    #tab-arcade { --bg:#140c2b; --panel:#21134a; --line:#6c4bff; --pink:#ff3c8e; --cyan:#2de2e6; --yellow:#ffd23f; --green:#5dff7a; --text:#f3eeff;
+        max-width: 800px; margin: auto; font-family: 'VT323', monospace; font-size: 22px; line-height: 1.2; color: var(--text); image-rendering: pixelated; }
+    #tab-arcade .px { font-family: 'Press Start 2P', monospace; }
+    #tab-arcade h2 { font-family: 'Press Start 2P', monospace; font-size: 18px; color: var(--yellow); text-shadow: 3px 3px 0 var(--pink); margin: 0 0 6px; line-height: 1.5; }
+    #tab-arcade .sub { color: var(--cyan); margin-bottom: 18px; }
+    .box { background: var(--panel); border: 4px solid var(--line); box-shadow: 6px 6px 0 #000, inset 0 0 0 4px var(--bg); padding: 18px; margin-bottom: 18px; }
+    .box > .ttl { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--cyan); margin-bottom: 12px; display: block; line-height: 1.6; }
+    #tab-arcade input[type=text], #tab-arcade input[type=password], #tab-arcade textarea {
+        width: 100%; box-sizing: border-box; background: #0b0620; color: var(--green); border: 3px solid var(--line); border-radius: 0; padding: 8px 10px;
+        font-family: 'VT323', monospace; font-size: 22px; margin: 0 0 10px; height: auto; outline: none; }
+    #tab-arcade textarea { height: 110px; resize: vertical; }
+    #tab-arcade input:focus, #tab-arcade textarea:focus { border-color: var(--yellow); }
+    #tab-arcade input:disabled { color: #6b5f99; border-style: dashed; }
+    #tab-arcade button { font-family: 'Press Start 2P', monospace; font-size: 10px; padding: 12px 14px; border-radius: 0; border: 3px solid #000; background: var(--green); color: #140c2b;
+        box-shadow: 4px 4px 0 #000; margin: 0 8px 10px 0; transition: none; font-weight: normal; }
+    #tab-arcade button:hover { background: var(--yellow); }
+    #tab-arcade button:active { transform: translate(4px,4px); box-shadow: 0 0 0 #000; }
+    #tab-arcade button:focus-visible, #tab-arcade .opt:focus-within { outline: 3px dashed var(--yellow); outline-offset: 3px; }
+    #tab-arcade button:disabled { background: #4a3c80; color: #8f7fd1; cursor: wait; }
+    #tab-arcade .b-pink { background: var(--pink); color: #fff; } #tab-arcade .b-cyan { background: var(--cyan); }
+    .row { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+    .row input { flex: 1; min-width: 160px; }
+    .lock { display: inline-block; font-family: 'Press Start 2P', monospace; font-size: 9px; padding: 6px 8px; border: 3px solid #000; margin-bottom: 10px; }
+    .lock.on { background: var(--green); color: #140c2b; } .lock.off { background: var(--pink); color: #fff; }
+    .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+    .opt { border: 3px solid var(--line); padding: 10px; cursor: pointer; background: #0b0620; display: block; font-weight: normal; font-size: 22px; margin: 0; }
+    .opt input { position: absolute; opacity: 0; }
+    .opt b { font-family: 'Press Start 2P', monospace; font-size: 10px; display: block; margin-bottom: 6px; color: var(--text); line-height: 1.5; font-weight: normal; }
+    .opt span { color: #a99be0; font-size: 19px; }
+    .opt:has(input:checked) { border-color: var(--yellow); background: #33206e; box-shadow: 4px 4px 0 #000; }
+    .opt:has(input:checked) b { color: var(--yellow); }
+    .opt:has(input:checked) b::before { content: '▶ '; }
+    .drop { border: 4px dashed var(--line); padding: 18px; text-align: center; cursor: pointer; background: #0b0620; color: var(--cyan); }
+    .drop.over { border-color: var(--yellow); color: var(--yellow); }
+    .thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .thumb { position: relative; width: 74px; height: 74px; border: 3px solid var(--line); background: #000; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb button { position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; padding: 0; margin: 0; font-size: 9px; background: var(--pink); color: #fff; box-shadow: 2px 2px 0 #000; }
+    #aOut { height: 260px !important; color: var(--text) !important; white-space: pre; }
+    #aStatus { font-family: 'Press Start 2P', monospace; font-size: 9px; line-height: 1.7; color: var(--yellow); min-height: 16px; margin: 6px 0 12px; }
+    #aStatus.err { color: var(--pink); } #aStatus.ok { color: var(--green); }
+    .tip { color: #a99be0; font-size: 19px; }
+    @media (prefers-reduced-motion: no-preference) { .blink { animation: blink 1s steps(2) infinite; } @keyframes blink { 50% { opacity: 0; } } }
+    @media (max-width: 560px) { body, body.arcade-on { padding: 12px; } #tab-arcade h2 { font-size: 13px; } }
+</style>
 </head>
 <body>
 
+<div class="tabs" role="tablist">
+    <button id="tb-classic" class="active" onclick="showTab('classic')">📦 Classic Link</button>
+    <button id="tb-arcade" onclick="showTab('arcade')">👾 AI Arcade</button>
+</div>
+
+<!-- ================= TAB 1: ORIGINAL ================= -->
+<div class="tab show" id="tab-classic">
 <div class="container">
     <h2>🚀 Vocab JSON Compiler Pro</h2>
 
@@ -37,11 +101,11 @@
     <div class="panel">
         <label>🛠️ Chế độ tạo Link hàng loạt (Advanced)</label>
         <input type="text" id="sampleUrl" placeholder="Dán link mẫu vào đây (vd: .../bike.PNG)">
-        
+
         <label>📝 Danh sách từ vựng mới:</label>
         <div class="hint">Dán kiểu: <i>doll, ball, teddy</i> hoặc mỗi từ một dòng.</div>
         <textarea id="wordList" placeholder="Ví dụ: doll, ball, teddy, puzzle..."></textarea>
-        
+
         <button onclick="generateLinks()">Tạo & Cộng dồn Link ↓</button>
     </div>
 
@@ -49,17 +113,86 @@
 
     <label>🔗 Tổng hợp danh sách Link (Cũ + Mới):</label>
     <textarea id="inputLinks" placeholder="Dữ liệu sẽ hiển thị ở đây..."></textarea>
-    
+
     <div style="margin-bottom: 15px;">
         <button onclick="compile()">Biên dịch & Tải JSON</button>
         <button class="btn-clear" onclick="clearAll()">Xóa trắng tất cả</button>
     </div>
-    
+
     <div id="output">Kết quả JSON sẽ hiện ở đây...</div>
+</div>
+</div>
+
+<!-- ================= TAB 2: ARCADE AI ================= -->
+<div class="tab" id="tab-arcade">
+    <h2>👾 QUIZ COMPILER</h2>
+    <div class="sub">Gemini đọc ảnh + prompt → xuất file .txt cho game. <span class="blink">█</span></div>
+
+    <div class="box">
+        <span class="ttl">1P · API KEY</span>
+        <span id="lockBadge" class="lock off">🔓 UNLOCKED</span>
+        <div class="row">
+            <input type="password" id="apiKey" placeholder="Gemini API key" autocomplete="off" spellcheck="false">
+            <button id="lockBtn" class="b-cyan" onclick="toggleLock()">LOCK</button>
+        </div>
+        <input type="text" id="modelId" value="gemini-3.6-flash" spellcheck="false" aria-label="Model ID">
+        <div class="tip">Khóa = ẩn & không sửa được key (lưu trong trình duyệt này). Ô dưới là Model ID, đổi nếu tên model khác.</div>
+    </div>
+
+    <div class="box">
+        <span class="ttl">2P · CHỌN CHẾ ĐỘ</span>
+        <div class="opts">
+            <label class="opt"><input type="radio" name="mode" value="emoji" checked><b>😀 EMOJI</b><span>Câu hỏi là emoji, đáp án là từ tiếng Anh</span></label>
+            <label class="opt"><input type="radio" name="mode" value="vi-en"><b>🇻🇳 VI → EN</b><span>Câu hỏi tiếng Việt, đáp án tiếng Anh</span></label>
+            <label class="opt"><input type="radio" name="mode" value="free"><b>✨ FREE PROMPT</b><span>AI làm theo đúng prompt của bạn</span></label>
+        </div>
+    </div>
+
+    <div class="box">
+        <span class="ttl">3P · ĐẦU VÀO</span>
+        <label class="drop" id="drop" for="imgInput" style="font-weight:normal;font-size:22px;margin:0;display:block">
+            ▲ KÉO THẢ ẢNH VÀO ĐÂY hoặc bấm để chọn
+        </label>
+        <input type="file" id="imgInput" accept="image/*" multiple hidden>
+        <div class="thumbs" id="thumbs"></div>
+        <div style="height:12px"></div>
+        <textarea id="aPrompt" placeholder="Prompt: ví dụ 'Tạo 20 câu cho bé 6 tuổi về động vật', hoặc 'Lấy từ vựng trong ảnh'..."></textarea>
+    </div>
+
+    <div class="box">
+        <span class="ttl">4P · KIỂU FILE XUẤT</span>
+        <div class="opts">
+            <label class="opt"><input type="radio" name="fmt" value="shuffle" checked><b>🔀 SHUFFLE</b><span>Dòng lẻ = câu hỏi, dòng chẵn = đáp án (2 dòng/cặp)</span></label>
+            <label class="opt"><input type="radio" name="fmt" value="1-4"><b>🎯 1-4</b><span>Nhóm 5 dòng: câu hỏi, đáp án đúng, 3 đáp án nhiễu</span></label>
+        </div>
+        <div style="height:12px"></div>
+        <label class="px" style="font-size:10px;color:var(--cyan);margin-bottom:8px">SỐ CÂU (bỏ trống để AI tự quyết)</label>
+        <input type="text" id="qCount" placeholder="vd: 20" style="max-width:140px">
+    </div>
+
+    <button class="b-pink" id="goBtn" onclick="runAI()">▶ START COMPILE</button>
+    <button onclick="clearArcade()">RESET</button>
+    <div id="aStatus" role="status"></div>
+
+    <div class="box">
+        <span class="ttl">KẾT QUẢ · <span id="aCount">0 dòng</span></span>
+        <textarea id="aOut" spellcheck="false" placeholder="File .txt sẽ hiện ở đây. Bạn có thể sửa trực tiếp trước khi tải."></textarea>
+        <button class="b-cyan" onclick="copyOut()">COPY</button>
+        <button onclick="downloadTxt()">⬇ TẢI .TXT</button>
+    </div>
 </div>
 
 <script>
-    // Hàm nạp dữ liệu từ file JSON có sẵn
+    // ---------- TAB SWITCH ----------
+    function showTab(name) {
+        ['classic','arcade'].forEach(t => {
+            document.getElementById('tab-' + t).classList.toggle('show', t === name);
+            document.getElementById('tb-' + t).classList.toggle('active', t === name);
+        });
+        document.body.classList.toggle('arcade-on', name === 'arcade');
+    }
+
+    // ================= ORIGINAL CODE (unchanged) =================
     function mergeJson() {
         const fileInput = document.getElementById('importJson');
         const file = fileInput.files[0];
@@ -75,19 +208,17 @@
                 const data = JSON.parse(e.target.result);
                 if (!Array.isArray(data)) throw new Error("File JSON không đúng định dạng mảng.");
 
-                // Lấy danh sách URL từ file JSON
                 const oldUrls = data.map(item => item.url).filter(url => url);
-                
                 const currentLinks = document.getElementById('inputLinks').value.trim();
-                
+
                 if (currentLinks === "") {
                     document.getElementById('inputLinks').value = oldUrls.join('\n');
                 } else {
                     document.getElementById('inputLinks').value = currentLinks + '\n' + oldUrls.join('\n');
                 }
-                
+
                 alert("Đã nạp " + oldUrls.length + " từ cũ thành công!");
-                fileInput.value = ""; // Reset input file
+                fileInput.value = "";
             } catch (err) {
                 alert("Lỗi đọc file: " + err.message);
             }
@@ -136,7 +267,7 @@
     function compile() {
         const text = document.getElementById('inputLinks').value;
         const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
-        
+
         if (lines.length === 0) {
             alert("Không có link nào để biên dịch!");
             return;
@@ -144,13 +275,10 @@
 
         const result = lines.map(url => {
             const urlObj = url.trim();
-            const filename = urlObj.split('/').pop(); 
+            const filename = urlObj.split('/').pop();
             const englishWord = filename.split('.')[0].toLowerCase();
-            
-            return {
-                en: englishWord,
-                url: urlObj
-            };
+
+            return { en: englishWord, url: urlObj };
         });
 
         const jsonString = JSON.stringify(result, null, 2);
@@ -161,6 +289,165 @@
         a.href = URL.createObjectURL(blob);
         a.download = "merged_vocab_data.json";
         a.click();
+    }
+
+    // ================= ARCADE TAB =================
+    const $ = id => document.getElementById(id);
+    let images = []; // {name, mime, b64, url}
+
+    // --- Key lock ---
+    function setLock(locked) {
+        const k = $('apiKey');
+        k.disabled = locked;
+        $('lockBtn').textContent = locked ? 'UNLOCK' : 'LOCK';
+        const b = $('lockBadge');
+        b.className = 'lock ' + (locked ? 'on' : 'off');
+        b.textContent = locked ? '🔒 LOCKED' : '🔓 UNLOCKED';
+    }
+    function toggleLock() {
+        const k = $('apiKey');
+        if (k.disabled) { setLock(false); try { localStorage.removeItem('vc_locked'); } catch (e) {} k.focus(); return; }
+        if (!k.value.trim()) { status('Nhập API key trước khi khóa.', 'err'); return; }
+        try { localStorage.setItem('vc_key', k.value.trim()); localStorage.setItem('vc_locked', '1'); } catch (e) {}
+        setLock(true); status('Key đã khóa.', 'ok');
+    }
+    try {
+        const sk = localStorage.getItem('vc_key');
+        if (sk) $('apiKey').value = sk;
+        const sm = localStorage.getItem('vc_model'); if (sm) $('modelId').value = sm;
+        if (sk && localStorage.getItem('vc_locked')) setLock(true);
+    } catch (e) {}
+    $('modelId').addEventListener('change', () => { try { localStorage.setItem('vc_model', $('modelId').value.trim()); } catch (e) {} });
+
+    function status(msg, cls) { const s = $('aStatus'); s.textContent = msg; s.className = cls || ''; }
+
+    // --- Images ---
+    function addFiles(files) {
+        [...files].filter(f => f.type.startsWith('image/')).forEach(f => {
+            const r = new FileReader();
+            r.onload = () => {
+                images.push({ name: f.name, mime: f.type, b64: r.result.split(',')[1], url: r.result });
+                renderThumbs();
+            };
+            r.readAsDataURL(f);
+        });
+    }
+    function renderThumbs() {
+        $('thumbs').innerHTML = '';
+        images.forEach((im, i) => {
+            const d = document.createElement('div'); d.className = 'thumb';
+            d.innerHTML = '<img alt=""><button title="Xóa" aria-label="Xóa ảnh">X</button>';
+            d.querySelector('img').src = im.url;
+            d.querySelector('button').onclick = () => { images.splice(i, 1); renderThumbs(); };
+            $('thumbs').appendChild(d);
+        });
+    }
+    $('imgInput').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+    const drop = $('drop');
+    ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+    document.addEventListener('paste', e => { if ($('tab-arcade').classList.contains('show')) addFiles(e.clipboardData.files); });
+
+    // --- Prompt building ---
+    const radio = n => document.querySelector(`input[name=${n}]:checked`).value;
+
+    function buildPrompt() {
+        const mode = radio('mode'), fmt = radio('fmt');
+        const n = parseInt($('qCount').value, 10);
+        const user = $('aPrompt').value.trim();
+        const modeText = {
+            'emoji': 'MODE EMOJI: each "q" is one or a few emojis that represent a thing, and "a" is the matching simple English word (lowercase, no punctuation). Use any images/prompt as the source of vocabulary.',
+            'vi-en': 'MODE VIETNAMESE-ENGLISH: each "q" is a Vietnamese word or short phrase (with correct diacritics) and "a" is its English translation (lowercase unless a proper noun). Use any images/prompt as the source of vocabulary.',
+            'free':  'MODE FREE: follow the user prompt exactly to decide what the questions and answers are.'
+        }[mode];
+        return [
+            'You build quiz data for a children\'s learning game.',
+            modeText,
+            images.length ? 'Read the attached images carefully and extract the content needed.' : '',
+            isNaN(n) ? '' : `Produce exactly ${n} items.`,
+            fmt === '1-4' ? 'Each item also needs "d": an array of exactly 3 plausible but WRONG distractor answers in the same language and category as "a". Distractors must differ from "a" and from each other.' : 'Each item needs only "q" and "a".',
+            'Rules: every value is a single line of plain text, no newlines, no numbering, no labels like "a)" or "(correct)".',
+            'Return ONLY a JSON array like [{"q":"...","a":"..."' + (fmt === '1-4' ? ',"d":["...","...","..."]' : '') + '}]. No markdown fences, no commentary.',
+            user ? 'User prompt: ' + user : ''
+        ].filter(Boolean).join('\n');
+    }
+
+    // --- Gemini call ---
+    async function runAI() {
+        const key = $('apiKey').value.trim(), model = $('modelId').value.trim();
+        if (!key) return status('Thiếu API key.', 'err');
+        if (!model) return status('Thiếu Model ID.', 'err');
+        if (!images.length && !$('aPrompt').value.trim()) return status('Cần ít nhất một ảnh hoặc một prompt.', 'err');
+
+        const parts = [{ text: buildPrompt() }, ...images.map(im => ({ inlineData: { mimeType: im.mime, data: im.b64 } }))];
+        $('goBtn').disabled = true; status('LOADING... AI đang làm việc', '');
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+                body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.7 } })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error((data.error && data.error.message) || ('HTTP ' + res.status));
+            const text = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+            if (!text) throw new Error('AI không trả về nội dung (có thể bị chặn bởi bộ lọc).');
+            const items = parseItems(text);
+            const out = formatItems(items, radio('fmt'));
+            $('aOut').value = out; updateCount();
+            status(`XONG! ${items.length} câu → ${out.split('\n').length} dòng.`, 'ok');
+        } catch (err) {
+            status('LỖI: ' + err.message, 'err');
+        } finally { $('goBtn').disabled = false; }
+    }
+
+    function parseItems(text) {
+        let t = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+        let arr = JSON.parse(t);
+        if (!Array.isArray(arr)) arr = arr.items || arr.questions || [];
+        const clean = v => String(v == null ? '' : v).replace(/[\r\n]+/g, ' ').trim();
+        arr = arr.map(o => ({ q: clean(o.q), a: clean(o.a), d: (o.d || []).map(clean).filter(Boolean) })).filter(o => o.q && o.a);
+        if (!arr.length) throw new Error('Không có câu hỏi hợp lệ trong kết quả.');
+        return arr;
+    }
+
+    function formatItems(items, fmt) {
+        const lines = [];
+        const pool = items.map(i => i.a);
+        items.forEach(it => {
+            lines.push(it.q, it.a);
+            if (fmt === '1-4') {
+                const d = it.d.filter(x => x.toLowerCase() !== it.a.toLowerCase());
+                // fill missing distractors from other answers so every group is exactly 5 lines
+                const others = pool.filter(x => x.toLowerCase() !== it.a.toLowerCase() && !d.includes(x)).sort(() => Math.random() - .5);
+                while (d.length < 3 && others.length) d.push(others.pop());
+                while (d.length < 3) d.push('—');
+                lines.push(...d.slice(0, 3));
+            }
+        });
+        return lines.join('\n'); // no blank lines anywhere
+    }
+
+    // --- Output helpers ---
+    function cleanOut() { return $('aOut').value.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '').join('\n'); }
+    function updateCount() {
+        const n = cleanOut() ? cleanOut().split('\n').length : 0;
+        const size = radio('fmt') === '1-4' ? 5 : 2;
+        $('aCount').textContent = n + ' dòng' + (n % size ? ' ⚠ lệch nhóm ' + size : '');
+    }
+    $('aOut').addEventListener('input', updateCount);
+    document.querySelectorAll('input[name=fmt]').forEach(r => r.addEventListener('change', updateCount));
+    function copyOut() { navigator.clipboard.writeText(cleanOut()).then(() => status('Đã copy.', 'ok')).catch(() => status('Không copy được, hãy bôi đen & copy tay.', 'err')); }
+    function downloadTxt() {
+        const t = cleanOut(); if (!t) return status('Chưa có gì để tải.', 'err');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain;charset=utf-8' }));
+        a.download = (radio('fmt') === '1-4' ? 'quiz_1-4' : 'quiz_shuffle') + '.txt';
+        a.click();
+    }
+    function clearArcade() {
+        if (!confirm('Xóa ảnh, prompt và kết quả?')) return;
+        images = []; renderThumbs(); $('aPrompt').value = ''; $('aOut').value = ''; updateCount(); status('');
     }
 </script>
 
