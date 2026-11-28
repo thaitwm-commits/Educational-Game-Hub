@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vocab JSON Compiler Pro</title>
+<title>Vocab JSON Compiler Pro (Merge Mode)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; line-height: 1.6; background: #eceff1; color: #333; margin: 0; transition: background .2s; }
@@ -373,32 +373,112 @@
         ].filter(Boolean).join('\n');
     }
 
-    // --- Gemini call ---
+    // --- Typewriter (live typing effect) ---
+    const typer = { target: '', shown: 0, timer: null, waiters: [] };
+    function typeTo(text) {
+        typer.target = text;
+        if (typer.timer) return;
+        typer.timer = setInterval(() => {
+            const gap = typer.target.length - typer.shown;
+            if (gap <= 0) {
+                clearInterval(typer.timer); typer.timer = null;
+                typer.waiters.splice(0).forEach(r => r()); return;
+            }
+            typer.shown += Math.max(1, Math.ceil(gap / 10)); // speeds up if it falls behind
+            const o = $('aOut');
+            o.value = typer.target.slice(0, typer.shown) + '█';
+            o.scrollTop = o.scrollHeight;
+        }, 28);
+    }
+    function drainTyper() { return typer.timer ? new Promise(r => typer.waiters.push(r)) : Promise.resolve(); }
+    function resetTyper() { clearInterval(typer.timer); typer.timer = null; typer.target = ''; typer.shown = 0; typer.waiters.splice(0).forEach(r => r()); }
+
+    // Pull out finished {...} objects from the streaming JSON text as they arrive
+    function makeExtractor() {
+        let pos = 0, depth = 0, inStr = false, esc = false, start = -1;
+        return function (buf) {
+            const found = [];
+            for (; pos < buf.length; pos++) {
+                const c = buf[pos];
+                if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') inStr = false; continue; }
+                if (c === '"') inStr = true;
+                else if (c === '{') { if (depth === 0) start = pos; depth++; }
+                else if (c === '}') { depth--; if (depth === 0 && start >= 0) { try { found.push(JSON.parse(buf.slice(start, pos + 1))); } catch (e) {} start = -1; } }
+            }
+            return found;
+        };
+    }
+    const cleanLine = v => String(v == null ? '' : v).replace(/[\r\n]+/g, ' ').trim();
+    function liveLines(o, fmt) {
+        const l = [cleanLine(o.q), cleanLine(o.a)];
+        if (fmt === '1-4') (o.d || []).slice(0, 3).forEach(x => l.push(cleanLine(x)));
+        return l.filter(Boolean);
+    }
+
+    // --- Gemini call (streaming) ---
     async function runAI() {
         const key = $('apiKey').value.trim(), model = $('modelId').value.trim();
         if (!key) return status('Thiếu API key.', 'err');
         if (!model) return status('Thiếu Model ID.', 'err');
         if (!images.length && !$('aPrompt').value.trim()) return status('Cần ít nhất một ảnh hoặc một prompt.', 'err');
 
+        const fmt = radio('fmt');
         const parts = [{ text: buildPrompt() }, ...images.map(im => ({ inlineData: { mimeType: im.mime, data: im.b64 } }))];
-        $('goBtn').disabled = true; status('LOADING... AI đang làm việc', '');
+        $('goBtn').disabled = true; $('aOut').readOnly = true;
+        resetTyper(); $('aOut').value = '█'; status('LOADING... AI đang gõ', '');
+        let raw = '', liveItems = [], liveText = '';
+        const extract = makeExtractor();
         try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
                 body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.7 } })
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error((data.error && data.error.message) || ('HTTP ' + res.status));
-            const text = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-            if (!text) throw new Error('AI không trả về nội dung (có thể bị chặn bởi bộ lọc).');
-            const items = parseItems(text);
-            const out = formatItems(items, radio('fmt'));
-            $('aOut').value = out; updateCount();
+            if (!res.ok) {
+                let msg = 'HTTP ' + res.status;
+                try { const e = await res.json(); msg = (e.error && e.error.message) || msg; } catch (e) {}
+                throw new Error(msg);
+            }
+            const reader = res.body.getReader(), dec = new TextDecoder();
+            let sse = '';
+            const handle = line => {
+                if (!line.startsWith('data:')) return;
+                const payload = line.slice(5).trim();
+                if (!payload || payload === '[DONE]') return;
+                let j; try { j = JSON.parse(payload); } catch (e) { return; }
+                const t = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+                if (!t) return;
+                raw += t;
+                extract(raw).forEach(o => {
+                    if (!o || !o.q || !o.a) return;
+                    liveItems.push(o);
+                    liveText += (liveText ? '\n' : '') + liveLines(o, fmt).join('\n');
+                });
+                typeTo(liveText);
+                status(`LIVE... ${liveItems.length} câu`, '');
+            };
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                sse += dec.decode(value, { stream: true });
+                const lines = sse.split(/\r?\n/); sse = lines.pop();
+                lines.forEach(handle);
+            }
+            if (sse) handle(sse);
+
+            if (!raw) throw new Error('AI không trả về nội dung (có thể bị chặn bởi bộ lọc).');
+            const items = parseItems(raw);
+            const out = formatItems(items, fmt);
+            typeTo(out.startsWith(liveText) ? out : liveText); // keep typing smoothly
+            await drainTyper();
+            $('aOut').value = out; // final clean version (cursor removed, distractors filled)
+            updateCount();
             status(`XONG! ${items.length} câu → ${out.split('\n').length} dòng.`, 'ok');
         } catch (err) {
+            await drainTyper();
+            $('aOut').value = liveText; updateCount();
             status('LỖI: ' + err.message, 'err');
-        } finally { $('goBtn').disabled = false; }
+        } finally { $('goBtn').disabled = false; $('aOut').readOnly = false; }
     }
 
     function parseItems(text) {
